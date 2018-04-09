@@ -11,7 +11,7 @@ Think about `Append Features to Layer` as a Copy & Paste algorithm, which extrac
 
 
 Where to find the algorithm
-===========================
+---------------------------
 
 Once installed and activated, this plugin adds a new provider to QGIS Processing.
 You can find it in the Processing Toolbox under `ETL_LOAD -> Vector table -> Append features to layer`.
