@@ -1,0 +1,17 @@
+[general]
+name=Append Features to Layer
+description=Processing plugin-based provider that adds an algorithm for appending features to a vector layer
+about=Algorithm to act as the 'Load' in an ETL operation, allowing you to store data into your target layer instead of into temporary layers
+version=0.1.0
+qgisMinimumVersion=2.99
+qgisMaximumVersion=3.99
+category=Processing
+author=Germán Carrillo (GeoTux)
+email=gacarrillo@linuxmail.org
+tags=processing,provider,append,copy,paste,insert,load data,etl,load
+homepage=https://github.com/gacarrillor/AppendFeaturesToLayer
+tracker=https://github.com/gacarrillor/AppendFeaturesToLayer/issues
+repository=https://github.com/gacarrillor/AppendFeaturesToLayer
+icon=images/icon.png
+experimental=False
+deprecated=False
