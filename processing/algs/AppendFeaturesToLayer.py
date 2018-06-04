@@ -49,7 +49,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         return 'vectortable'
 
     def tags(self):
-        return (QCoreApplication.translate("AppendFeaturesToLayer", 'append,copy,insert,features,paste,etl')).split(',')
+        return (QCoreApplication.translate("AppendFeaturesToLayer", 'append,copy,insert,features,paste,load,etl')).split(',')
 
     def __init__(self):
         super().__init__()
