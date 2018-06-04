@@ -116,9 +116,11 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
             feedback.setProgress(int(current * total))
 
-        # This might throw errors and print messages... But, in that case, that's what we want!
+        # This might print error messages... But, hey! That's what we want!
         with edit(target):
+            target.beginEditCommand("Appending features...")
             res = target.addFeatures(new_features)
+            target.endEditCommand()
 
         if res:
             feedback.pushInfo("{} out of {} features from input layer were successfully appended to '{}'!".format(
