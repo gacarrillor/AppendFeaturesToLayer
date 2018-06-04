@@ -96,7 +96,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
             geom = QgsGeometry()
 
-            if in_feature.hasGeometry():
+            if in_feature.hasGeometry() and target.isSpatial():
                 # Convert geometry to match destination layer
                 # Adapted from QGIS qgisapp.cpp, pasteFromClipboard()
                 geom = in_feature.geometry()
