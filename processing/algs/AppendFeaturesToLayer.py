@@ -28,7 +28,9 @@ from qgis.core import (
                        QgsWkbTypes,
                        QgsProcessing,
                        QgsProcessingAlgorithm,
+                       QgsProcessingParameterEnum,
                        QgsProcessingParameterFeatureSource,
+                       QgsProcessingParameterField,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingOutputVectorLayer,
                        QgsProject,
@@ -38,7 +40,14 @@ from qgis.core import (
 class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
     INPUT = 'INPUT'
+    INPUT_FIELD = 'INPUT_FIELD'
     OUTPUT = 'OUTPUT'
+    OUTPUT_FIELD = 'OUTPUT_FIELD'
+    ACTION_ON_DUPLICATE = 'ACTION_ON_DUPLICATE'
+
+    SKIP_FEATURE = 'Skip feature'
+    UPDATE_EXISTING_FEATURE = 'Update existing feature'
+    APPEND_NONETHELESS = 'Append feature, nonetheless'
 
     def createInstance(self):
         return type(self)()
@@ -59,9 +68,25 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
                                                               QCoreApplication.translate("AppendFeaturesToLayer", 'Input layer'),
                                                               [QgsProcessing.TypeVector]))
+        self.addParameter(QgsProcessingParameterField(self.INPUT_FIELD,
+                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Input field'),
+                                                      None,
+                                                      self.INPUT,
+                                                      optional=True))
         self.addParameter(QgsProcessingParameterVectorLayer(self.OUTPUT,
                                                               QCoreApplication.translate("AppendFeaturesToLayer", 'Output layer'),
                                                               [QgsProcessing.TypeVector]))
+        self.addParameter(QgsProcessingParameterField(self.OUTPUT_FIELD,
+                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Output field'),
+                                                      None,
+                                                      self.OUTPUT,
+                                                      optional=True))
+        self.addParameter(QgsProcessingParameterEnum(self.ACTION_ON_DUPLICATE,
+                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Action when value exists in target'),
+                                                      [self.SKIP_FEATURE, self.UPDATE_EXISTING_FEATURE, self.APPEND_NONETHELESS],
+                                                      False,
+                                                      self.SKIP_FEATURE,
+                                                      optional=True))
         self.addOutput(QgsProcessingOutputVectorLayer(self.OUTPUT,
                                                         QCoreApplication.translate("AppendFeaturesToLayer", 'Output layer with new features')))
 
@@ -73,7 +98,12 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
         source = self.parameterAsSource(parameters, self.INPUT, context)
+        source_field = self.parameterAs(parameters, self.INPUT_FIELD, context)
         target = self.parameterAsVectorLayer(parameters, self.OUTPUT, context)
+        target_field = self.parameterAs(parameters, self.OUTPUT_FIELD, context)
+        action_on_duplicate = self.parameterAs(parameters, self.ACTION_ON_DUPLICATE, context)
+
+        target_value_dict = dict()
 
         editable_before = False
         if target.isEditable():
@@ -91,15 +121,35 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             if source_idx != -1:
                 mapping[target_idx] = source_idx
 
+        # Build dict of target field values so that we can search easily later
+        if target_field:
+            for f in target.getFeatures():
+                if f[target_field] in target_value_dict:
+                    target_value_dict[f[target_field]].append(f.id())
+                else:
+                    target_value_dict[f[target_field]] = [f.id()]
+
         # Copy and Paste
         total = 100.0 / source.featureCount() if source.featureCount() else 0
         features = source.getFeatures()
         destType = target.geometryType()
         destIsMulti = QgsWkbTypes.isMultiType(target.wkbType())
-        new_features = []
+        new_features = list()
+        updated_features = dict()
+        updated_geometries = dict()
+        updated_features_count = 0
+        updated_geometries_count = 0
         for current, in_feature in enumerate(features):
             if feedback.isCanceled():
                 break
+
+            target_feature_exists = False
+
+            if in_feature[source_field] in target_value_dict:
+                if action_on_duplicate == self.SKIP_FEATURE:
+                    continue
+                else:
+                    target_feature_exists = True
 
             attrs = {target_idx: in_feature[source_idx] for target_idx, source_idx in mapping.items()}
 
@@ -120,29 +170,52 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 # Avoid intersection if enabled in digitize settings
                 geom.avoidIntersections(QgsProject.instance().avoidIntersectionsLayers())
 
-            new_feature = QgsVectorLayerUtils().createFeature(target, geom, attrs)
-            new_features.append(new_feature)
+            if target_feature_exists and action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
+                for t_f in target.getFeatures(target_value_dict[in_feature[source_field]]):
+                    updated_features[t_f.id()] = attrs
+                    updated_geometries[t_f.id()] = geom
+            else:
+                new_feature = QgsVectorLayerUtils().createFeature(target, geom, attrs)
+                new_features.append(new_feature)
 
             feedback.setProgress(int(current * total))
 
         try:
             # This might print error messages... But, hey! That's what we want!
             with edit(target):
-                target.beginEditCommand("Appending features...")
-                res = target.addFeatures(new_features)
+                target.beginEditCommand("Appending/Updating features...")
+
+                if updated_features:
+                    for k, v in updated_features.items():
+                        if target.changeAttributeValues(k, v):
+                            updated_features_count += 1
+                        else:
+                            feedback.reportError("\nWARNING: Target feature (id={}) couldn't be updated.\n".format(k))
+
+                if updated_geometries:
+                    for k,v in updated_geometries.items():
+                        if target.changeGeometry(k, v):
+                            updated_geometries_count +=1
+                        else:
+                            feedback.reportError("\nWARNING: Target feature's geometry (id={}) couldn't be updated.\n".format(k))
+
+                if new_features:
+                    res_new = target.addFeatures(new_features)
+
                 target.endEditCommand()
         except QgsEditError as e:
             if not editable_before:
                 # Let's close the edit session to prepare for a next run
                 target.rollBack()
 
-            feedback.reportError("\nERROR: No features could be appended to '{}', because of the following error:\n{}\n".format(
+            feedback.reportError("\nERROR: No features could be appended/updated to/in '{}', because of the following error:\n{}\n".format(
                 target.name(),
                 repr(e)
             ))
             return {self.OUTPUT: None}
 
-        if res:
+        # TODO show proper messages for append/update cases
+        if res_new and updated_features_count and updated_geometries_count:
             feedback.pushInfo("\nSUCCESS: {} out of {} features from input layer were successfully appended to '{}'!".format(
                 len(new_features),
                 source.featureCount(),
