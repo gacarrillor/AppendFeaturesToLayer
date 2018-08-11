@@ -83,9 +83,9 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                                                       optional=True))
         self.addParameter(QgsProcessingParameterEnum(self.ACTION_ON_DUPLICATE,
                                                       QCoreApplication.translate("AppendFeaturesToLayer", 'Action when value exists in target'),
-                                                      [self.SKIP_FEATURE, self.UPDATE_EXISTING_FEATURE, self.APPEND_NONETHELESS],
+                                                      [None, self.SKIP_FEATURE, self.UPDATE_EXISTING_FEATURE, self.APPEND_NONETHELESS],
                                                       False,
-                                                      self.SKIP_FEATURE,
+                                                      QVariant(),
                                                       optional=True))
         self.addOutput(QgsProcessingOutputVectorLayer(self.OUTPUT,
                                                         QCoreApplication.translate("AppendFeaturesToLayer", 'Output layer with new features')))
@@ -98,12 +98,24 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
         source = self.parameterAsSource(parameters, self.INPUT, context)
-        source_field = self.parameterAs(parameters, self.INPUT_FIELD, context)
+        source_fields_parameter = self.parameterAsFields(parameters, self.INPUT_FIELD, context)
         target = self.parameterAsVectorLayer(parameters, self.OUTPUT, context)
-        target_field = self.parameterAs(parameters, self.OUTPUT_FIELD, context)
-        action_on_duplicate = self.parameterAs(parameters, self.ACTION_ON_DUPLICATE, context)
+        target_fields_parameter = self.parameterAsFields(parameters, self.OUTPUT_FIELD, context)
+        action_on_duplicate = self.parameterAsEnum(parameters, self.ACTION_ON_DUPLICATE, context)
 
         target_value_dict = dict()
+        source_field_unique_values = ''
+        target_field_unique_values = ''
+
+        if source_fields_parameter:
+            source_field_unique_values = source_fields_parameter[0]
+
+        if target_fields_parameter:
+            target_field_unique_values = target_fields_parameter[0]
+
+        if source_field_unique_values and target_field_unique_values and not action_on_duplicate:
+            feedback.reportError("\nWARNING: Since you have chosen source and target field values, you need to choose an action to apply on duplicate features before running this algorithm.")
+            return {self.OUTPUT: None}
 
         editable_before = False
         if target.isEditable():
@@ -122,12 +134,12 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 mapping[target_idx] = source_idx
 
         # Build dict of target field values so that we can search easily later
-        if target_field:
+        if target_field_unique_values:
             for f in target.getFeatures():
-                if f[target_field] in target_value_dict:
-                    target_value_dict[f[target_field]].append(f.id())
+                if f[target_field_unique_values] in target_value_dict:
+                    target_value_dict[f[target_field_unique_values]].append(f.id())
                 else:
-                    target_value_dict[f[target_field]] = [f.id()]
+                    target_value_dict[f[target_field_unique_values]] = [f.id()]
 
         # Copy and Paste
         total = 100.0 / source.featureCount() if source.featureCount() else 0
@@ -145,11 +157,12 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
             target_feature_exists = False
 
-            if in_feature[source_field] in target_value_dict:
-                if action_on_duplicate == self.SKIP_FEATURE:
-                    continue
-                else:
-                    target_feature_exists = True
+            if source_field_unique_values:
+                if in_feature[source_field_unique_values] in target_value_dict:
+                    if action_on_duplicate == self.SKIP_FEATURE:
+                        continue
+                    else:
+                        target_feature_exists = True
 
             attrs = {target_idx: in_feature[source_idx] for target_idx, source_idx in mapping.items()}
 
@@ -171,7 +184,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 geom.avoidIntersections(QgsProject.instance().avoidIntersectionsLayers())
 
             if target_feature_exists and action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
-                for t_f in target.getFeatures(target_value_dict[in_feature[source_field]]):
+                for t_f in target.getFeatures(target_value_dict[in_feature[source_field_unique_values]]):
                     updated_features[t_f.id()] = attrs
                     updated_geometries[t_f.id()] = geom
             else:
