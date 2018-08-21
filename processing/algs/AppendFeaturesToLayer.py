@@ -45,9 +45,12 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
     OUTPUT_FIELD = 'OUTPUT_FIELD'
     ACTION_ON_DUPLICATE = 'ACTION_ON_DUPLICATE'
 
-    SKIP_FEATURE = 'Skip feature'
-    UPDATE_EXISTING_FEATURE = 'Update existing feature'
-    APPEND_NONETHELESS = 'Append feature, nonetheless'
+    SKIP_FEATURE_TEXT = 'Skip feature'
+    UPDATE_EXISTING_FEATURE_TEXT = 'Update existing feature'
+    APPEND_NONETHELESS_TEXT = 'Append feature, nonetheless'
+    SKIP_FEATURE = 1
+    UPDATE_EXISTING_FEATURE = 2
+    APPEND_NONETHELESS = 3
 
     def createInstance(self):
         return type(self)()
@@ -83,7 +86,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                                                       optional=True))
         self.addParameter(QgsProcessingParameterEnum(self.ACTION_ON_DUPLICATE,
                                                       QCoreApplication.translate("AppendFeaturesToLayer", 'Action when value exists in target'),
-                                                      [None, self.SKIP_FEATURE, self.UPDATE_EXISTING_FEATURE, self.APPEND_NONETHELESS],
+                                                      [None, self.SKIP_FEATURE_TEXT, self.UPDATE_EXISTING_FEATURE_TEXT, self.APPEND_NONETHELESS_TEXT],
                                                       False,
                                                       QVariant(),
                                                       optional=True))
@@ -117,6 +120,10 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             feedback.reportError("\nWARNING: Since you have chosen source and target field values, you need to choose an action to apply on duplicate features before running this algorithm.")
             return {self.OUTPUT: None}
 
+        if action_on_duplicate and not source_field_unique_values and not target_field_unique_values:
+            feedback.reportError("\nWARNING: Since you have chosen an action on duplicate features, you need to choose both source and target fields for unique values before running this algorithm.")
+            return {self.OUTPUT: None}
+
         editable_before = False
         if target.isEditable():
             editable_before = True
@@ -137,11 +144,11 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         if target_field_unique_values:
             for f in target.getFeatures():
                 if f[target_field_unique_values] in target_value_dict:
-                    target_value_dict[f[target_field_unique_values]].append(f.id())
+                    target_value_dict[f[target_field_unique_values]].append(int(f.id()))
                 else:
-                    target_value_dict[f[target_field_unique_values]] = [f.id()]
+                    target_value_dict[f[target_field_unique_values]] = [int(f.id())]
 
-        # Copy and Paste
+        # Prepare features for the Copy and Paste
         total = 100.0 / source.featureCount() if source.featureCount() else 0
         features = source.getFeatures()
         destType = target.geometryType()
@@ -151,6 +158,8 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         updated_geometries = dict()
         updated_features_count = 0
         updated_geometries_count = 0
+        skipped_features_count = 0
+        duplicate_features_count = 0
         for current, in_feature in enumerate(features):
             if feedback.isCanceled():
                 break
@@ -159,7 +168,9 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
             if source_field_unique_values:
                 if in_feature[source_field_unique_values] in target_value_dict:
+                    duplicate_features_count += 1
                     if action_on_duplicate == self.SKIP_FEATURE:
+                        skipped_features_count += 1
                         continue
                     else:
                         target_feature_exists = True
@@ -186,13 +197,16 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             if target_feature_exists and action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
                 for t_f in target.getFeatures(target_value_dict[in_feature[source_field_unique_values]]):
                     updated_features[t_f.id()] = attrs
-                    updated_geometries[t_f.id()] = geom
+                    if target.isSpatial():
+                        updated_geometries[t_f.id()] = geom
             else:
                 new_feature = QgsVectorLayerUtils().createFeature(target, geom, attrs)
                 new_features.append(new_feature)
 
             feedback.setProgress(int(current * total))
 
+        # Do the Copy and Paste
+        res_add_features = False
         try:
             # This might print error messages... But, hey! That's what we want!
             with edit(target):
@@ -203,17 +217,17 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                         if target.changeAttributeValues(k, v):
                             updated_features_count += 1
                         else:
-                            feedback.reportError("\nWARNING: Target feature (id={}) couldn't be updated.\n".format(k))
+                            feedback.reportError("\nERROR: Target feature (id={}) couldn't be updated to the following attributes: {}.".format(k, v))
 
                 if updated_geometries:
                     for k,v in updated_geometries.items():
                         if target.changeGeometry(k, v):
-                            updated_geometries_count +=1
+                            updated_geometries_count += 1
                         else:
-                            feedback.reportError("\nWARNING: Target feature's geometry (id={}) couldn't be updated.\n".format(k))
+                            feedback.reportError("\nERROR: Target feature's geometry (id={}) couldn't be updated.".format(k))
 
                 if new_features:
-                    res_new = target.addFeatures(new_features)
+                    res_add_features = target.addFeatures(new_features)
 
                 target.endEditCommand()
         except QgsEditError as e:
@@ -227,17 +241,35 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             ))
             return {self.OUTPUT: None}
 
-        # TODO show proper messages for append/update cases
-        if res_new and updated_features_count and updated_geometries_count:
-            feedback.pushInfo("\nSUCCESS: {} out of {} features from input layer were successfully appended to '{}'!".format(
-                len(new_features),
-                source.featureCount(),
+
+        if action_on_duplicate == self.SKIP_FEATURE:
+            feedback.pushInfo("\nSKIPPED FEATURES: {} duplicate features were skipped while copying features to '{}'!".format(
+                skipped_features_count,
+                target.name()
+            ))
+
+        if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
+            feedback.pushInfo("\nUPDATED FEATURES: {} out of {} duplicate features were updated while copying features to '{}'!".format(
+                updated_features_count,
+                duplicate_features_count,
+                target.name()
+            ))
+
+        if not new_features:
+            feedback.pushInfo("\nFINISHED WITHOUT APPENDED FEATURES: There were no features to append to '{}'.".format(
                 target.name()
             ))
         else:
-            feedback.reportError("\nERROR: The {} features from input layer could not be appended to '{}'. This is likely due to NOT NULL constraints that are not met.".format(
-                source.featureCount(),
-                target.name()
-            ))
+            if res_add_features:
+                feedback.pushInfo("\nSUCCESS: {} out of {} features from input layer were successfully appended to '{}'!".format(
+                    len(new_features),
+                    source.featureCount(),
+                    target.name()
+                ))
+            else: # TODO do we really need this else message below?
+                feedback.reportError("\nERROR: The {} features from input layer could not be appended to '{}'. Sometimes this might be due to NOT NULL constraints that are not met.".format(
+                    source.featureCount(),
+                    target.name()
+                ))
 
         return {self.OUTPUT: target}
