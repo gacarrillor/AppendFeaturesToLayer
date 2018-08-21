@@ -9,6 +9,6 @@ env:
   global:
   - QGIS_TEST_VERSION=latest
 install:
-  - docker build --build-arg QGIS_TEST_VERSION=${QGIS_TEST_VERSION} .
+  - docker build --build-arg QGIS_TEST_VERSION=${QGIS_TEST_VERSION} -t append .
 script:
-  - bash /usr/src/run-docker-tests.sh
+  - docker run --rm append bash /usr/src/run-docker-tests.sh

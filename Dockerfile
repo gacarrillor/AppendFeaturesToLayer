@@ -1,6 +1,6 @@
 ARG QGIS_TEST_VERSION=latest
 FROM  qgis/qgis:${QGIS_TEST_VERSION}
-MAINTAINER Germán Carrillo <gcarrillo@linuxmail.org>
+MAINTAINER Matthias Kuhn <matthias@opengis.ch>
 
 RUN apt-get update && \
     apt-get -y install \
