@@ -47,10 +47,8 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
     SKIP_FEATURE_TEXT = 'Skip feature'
     UPDATE_EXISTING_FEATURE_TEXT = 'Update existing feature'
-    APPEND_NONETHELESS_TEXT = 'Append feature, nonetheless'
     SKIP_FEATURE = 1
     UPDATE_EXISTING_FEATURE = 2
-    APPEND_NONETHELESS = 3
 
     def createInstance(self):
         return type(self)()
@@ -62,36 +60,36 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         return 'vectortable'
 
     def tags(self):
-        return (QCoreApplication.translate("AppendFeaturesToLayer", 'append,copy,insert,features,paste,load,etl')).split(',')
+        return (QCoreApplication.translate("AppendFeaturesToLayer", 'append,copy,insert,update,features,paste,load,etl')).split(',')
 
     def __init__(self):
         super().__init__()
 
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
-                                                              QCoreApplication.translate("AppendFeaturesToLayer", 'Input layer'),
+                                                              QCoreApplication.translate("AppendFeaturesToLayer", 'Source layer'),
                                                               [QgsProcessing.TypeVector]))
         self.addParameter(QgsProcessingParameterField(self.INPUT_FIELD,
-                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Input field'),
+                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Source field to compare'),
                                                       None,
                                                       self.INPUT,
                                                       optional=True))
         self.addParameter(QgsProcessingParameterVectorLayer(self.OUTPUT,
-                                                              QCoreApplication.translate("AppendFeaturesToLayer", 'Output layer'),
+                                                              QCoreApplication.translate("AppendFeaturesToLayer", 'Target layer'),
                                                               [QgsProcessing.TypeVector]))
         self.addParameter(QgsProcessingParameterField(self.OUTPUT_FIELD,
-                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Output field'),
+                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Target field to compare'),
                                                       None,
                                                       self.OUTPUT,
                                                       optional=True))
         self.addParameter(QgsProcessingParameterEnum(self.ACTION_ON_DUPLICATE,
                                                       QCoreApplication.translate("AppendFeaturesToLayer", 'Action when value exists in target'),
-                                                      [None, self.SKIP_FEATURE_TEXT, self.UPDATE_EXISTING_FEATURE_TEXT, self.APPEND_NONETHELESS_TEXT],
+                                                      [None, self.SKIP_FEATURE_TEXT, self.UPDATE_EXISTING_FEATURE_TEXT],
                                                       False,
                                                       QVariant(),
                                                       optional=True))
         self.addOutput(QgsProcessingOutputVectorLayer(self.OUTPUT,
-                                                        QCoreApplication.translate("AppendFeaturesToLayer", 'Output layer with new features')))
+                                                        QCoreApplication.translate("AppendFeaturesToLayer", 'Target layer to paste new features')))
 
     def name(self):
         return 'appendfeaturestolayer'
@@ -117,11 +115,11 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             target_field_unique_values = target_fields_parameter[0]
 
         if source_field_unique_values and target_field_unique_values and not action_on_duplicate:
-            feedback.reportError("\nWARNING: Since you have chosen source and target field values, you need to choose an action to apply on duplicate features before running this algorithm.")
+            feedback.reportError("\nWARNING: Since you have chosen source and target fields to compare, you need to choose an action to apply on duplicate features before running this algorithm.")
             return {self.OUTPUT: None}
 
         if action_on_duplicate and not source_field_unique_values and not target_field_unique_values:
-            feedback.reportError("\nWARNING: Since you have chosen an action on duplicate features, you need to choose both source and target fields for unique values before running this algorithm.")
+            feedback.reportError("\nWARNING: Since you have chosen an action on duplicate features, you need to choose both source and target fields for comparing values before running this algorithm.")
             return {self.OUTPUT: None}
 
         editable_before = False
