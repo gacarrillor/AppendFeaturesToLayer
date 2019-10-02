@@ -24,7 +24,7 @@ class TestTableTable(unittest.TestCase):
         self.plugin.initGui()
 
     def test_copy_all(self):
-        print('INFO: Validating table-table copy&paste all...')
+        print('\nINFO: Validating table-table copy&paste all...')
 
         gpkg = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 

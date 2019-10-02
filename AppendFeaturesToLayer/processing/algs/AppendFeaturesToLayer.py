@@ -118,7 +118,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             feedback.reportError("\nWARNING: Since you have chosen source and target fields to compare, you need to choose an action to apply on duplicate features before running this algorithm.")
             return {self.OUTPUT: None}
 
-        if action_on_duplicate and not source_field_unique_values and not target_field_unique_values:
+        if action_on_duplicate and not (source_field_unique_values and target_field_unique_values):
             feedback.reportError("\nWARNING: Since you have chosen an action on duplicate features, you need to choose both source and target fields for comparing values before running this algorithm.")
             return {self.OUTPUT: None}
 
@@ -138,7 +138,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             if source_idx != -1:
                 mapping[target_idx] = source_idx
 
-        # Build dict of target field values so that we can search easily later
+        # Build dict of target field values so that we can search easily later {value1: [id1, id2], ...}
         if target_field_unique_values:
             for f in target.getFeatures():
                 if f[target_field_unique_values] in target_value_dict:
@@ -182,22 +182,23 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 # Adapted from QGIS qgisapp.cpp, pasteFromClipboard()
                 geom = in_feature.geometry()
 
-                if destType != QgsWkbTypes.UnknownGeometry:
-                    newGeometry = geom.convertToType(destType, destIsMulti)
+                if not geom.isNull():
+                    if destType != QgsWkbTypes.UnknownGeometry:
+                        newGeometry = geom.convertToType(destType, destIsMulti)
 
-                    if newGeometry.isNull():
-                        continue
-                    geom = newGeometry
+                        if newGeometry.isNull():
+                            continue  # Couldn't convert
+                        geom = newGeometry
 
-                # Avoid intersection if enabled in digitize settings
-                geom.avoidIntersections(QgsProject.instance().avoidIntersectionsLayers())
+                    # Avoid intersection if enabled in digitize settings
+                    geom.avoidIntersections(QgsProject.instance().avoidIntersectionsLayers())
 
             if target_feature_exists and action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
                 for t_f in target.getFeatures(target_value_dict[in_feature[source_field_unique_values]]):
                     updated_features[t_f.id()] = attrs
                     if target.isSpatial():
                         updated_geometries[t_f.id()] = geom
-            else:
+            else:  # Append
                 new_feature = QgsVectorLayerUtils().createFeature(target, geom, attrs)
                 new_features.append(new_feature)
 
@@ -259,7 +260,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             ))
         else:
             if res_add_features:
-                feedback.pushInfo("\nSUCCESS: {} out of {} features from input layer were successfully appended to '{}'!".format(
+                feedback.pushInfo("\nAPPENDED FEATURES: {} out of {} features from input layer were successfully appended to '{}'!".format(
                     len(new_features),
                     source.featureCount(),
                     target.name()
