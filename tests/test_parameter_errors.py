@@ -39,6 +39,7 @@ class TestParameterErrors(unittest.TestCase):
 
         # Target layer remains untouched
         layer = QgsVectorLayer("{}|layername=target_table".format(gpkg), 'a', 'ogr')
+        self.assertTrue(layer.isValid())
         self.assertEqual(layer.featureCount(), 0)
 
     def test_no_fields_but_on_duplicate(self):
@@ -57,6 +58,7 @@ class TestParameterErrors(unittest.TestCase):
 
         # Target layer remains untouched
         layer = QgsVectorLayer("{}|layername=target_table".format(gpkg), 'a', 'ogr')
+        self.assertTrue(layer.isValid())
         self.assertEqual(layer.featureCount(), 0)
 
 
@@ -72,8 +74,27 @@ class TestParameterErrors(unittest.TestCase):
 
         # Target layer remains untouched
         layer = QgsVectorLayer("{}|layername=target_table".format(gpkg), 'a', 'ogr')
+        self.assertTrue(layer.isValid())
         self.assertEqual(layer.featureCount(), 0)
 
+    def test_read_only_target_layer(self):
+        print('\nINFO: Validating read-only target layer...')
+
+        gpkg = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
+        csv = get_test_file_copy_path('sample.csv')
+        layer = QgsVectorLayer("file://{}?delimiter=;&xField=x&yField=y&crs=epsg:3116".format(csv), 'a', "delimitedtext")
+        self.assertTrue(layer.isValid())
+
+        res = processing.run("etl_load:appendfeaturestolayer",
+                       {'INPUT': "{}|layername=source_table".format(gpkg),
+                        'INPUT_FIELD': None,
+                        'OUTPUT': layer,
+                        'OUTPUT_FIELD': None,
+                        'ACTION_ON_DUPLICATE': None})
+
+        self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
+
+        self.assertEqual(layer.featureCount(), 2)
 
     @classmethod
     def tearDownClass(self):

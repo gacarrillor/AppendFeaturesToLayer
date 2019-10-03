@@ -36,6 +36,7 @@ class TestTableTable(unittest.TestCase):
                         'ACTION_ON_DUPLICATE': None})
 
         layer = QgsVectorLayer("{}|layername=target_table".format(gpkg), 'a', 'ogr')
+        self.assertTrue(layer.isValid())
         self.assertEqual(layer.featureCount(), 2)
 
     def test_copy_selected(self):
@@ -46,7 +47,9 @@ class TestTableTable(unittest.TestCase):
         input_layer_path = "{}|layername=source_table".format(gpkg)
         output_layer_path = "{}|layername=target_table".format(gpkg)
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+        self.assertTrue(input_layer.isValid())
         output_layer = QgsVectorLayer(output_layer_path, 'layer name', 'ogr')
+        self.assertTrue(output_layer.isValid())
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         input_layer.select(1)  # fid=1
@@ -68,7 +71,9 @@ class TestTableTable(unittest.TestCase):
         input_layer_path = "{}|layername=source_table".format(gpkg)
         output_layer_path = "{}|layername=target_table".format(gpkg)
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+        self.assertTrue(input_layer.isValid())
         output_layer = QgsVectorLayer(output_layer_path, 'layer name', 'ogr')
+        self.assertTrue(output_layer.isValid())
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         res = processing.run("etl_load:appendfeaturestolayer",
@@ -108,7 +113,9 @@ class TestTableTable(unittest.TestCase):
         input_layer_path = "{}|layername=source_table".format(gpkg)
         output_layer_path = "{}|layername=target_table".format(gpkg)
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+        self.assertTrue(input_layer.isValid())
         output_layer = QgsVectorLayer(output_layer_path, 'layer name', 'ogr')
+        self.assertTrue(output_layer.isValid())
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         res = processing.run("etl_load:appendfeaturestolayer",
@@ -146,7 +153,9 @@ class TestTableTable(unittest.TestCase):
         input_layer_path = "{}|layername=source_table".format(gpkg)
         output_layer_path = "{}|layername=target_table".format(gpkg)
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+        self.assertTrue(input_layer.isValid())
         output_layer = QgsVectorLayer(output_layer_path, 'layer name', 'ogr')
+        self.assertTrue(output_layer.isValid())
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         res = processing.run("etl_load:appendfeaturestolayer",
@@ -186,7 +195,9 @@ class TestTableTable(unittest.TestCase):
         input_layer_path = "{}|layername=source_table".format(gpkg)
         output_layer_path = "{}|layername=target_table".format(gpkg)
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+        self.assertTrue(input_layer.isValid())
         output_layer = QgsVectorLayer(output_layer_path, 'layer name', 'ogr')
+        self.assertTrue(output_layer.isValid())
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         res = processing.run("etl_load:appendfeaturestolayer",

@@ -16,13 +16,9 @@
  *                                                                         *
  ***************************************************************************/
 """
-import os
-
-from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtCore import QVariant, QCoreApplication
 
-from qgis.core import (
-                       edit,
+from qgis.core import (edit,
                        QgsEditError,
                        QgsGeometry,
                        QgsWkbTypes,
@@ -34,8 +30,9 @@ from qgis.core import (
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingOutputVectorLayer,
                        QgsProject,
-                       QgsVectorLayerUtils
-                       )
+                       QgsVectorLayerUtils,
+                       QgsVectorDataProvider)
+
 
 class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
@@ -83,7 +80,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                                                       self.OUTPUT,
                                                       optional=True))
         self.addParameter(QgsProcessingParameterEnum(self.ACTION_ON_DUPLICATE,
-                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Action when value exists in target'),
+                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Action when duplicate feature is found'),
                                                       [None, self.SKIP_FEATURE_TEXT, self.UPDATE_EXISTING_FEATURE_TEXT],
                                                       False,
                                                       QVariant(),
@@ -120,6 +117,15 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
         if action_on_duplicate and not (source_field_unique_values and target_field_unique_values):
             feedback.reportError("\nWARNING: Since you have chosen an action on duplicate features, you need to choose both source and target fields for comparing values before running this algorithm.")
+            return {self.OUTPUT: None}
+
+        caps = target.dataProvider().capabilities()
+        if not(caps & QgsVectorDataProvider.AddFeatures):
+            feedback.reportError("\nWARNING: The target layer does not support appending features to it! Choose another target layer.")
+            return {self.OUTPUT: None}
+
+        if action_on_duplicate == self.UPDATE_EXISTING_FEATURE and not(caps & QgsVectorDataProvider.ChangeAttributeValues and caps & QgsVectorDataProvider.ChangeGeometries):
+            feedback.reportError("\nWARNING: The target layer does not support updating its features! Choose another action for duplicate features or choose another target layer.")
             return {self.OUTPUT: None}
 
         editable_before = False
