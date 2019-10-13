@@ -10,7 +10,8 @@ from qgis.testing.mocked import get_iface
 
 import processing
 
-from tests.utils import CommonTests
+from tests.utils import (CommonTests,
+                         APPENDED_COUNT)
 
 start_app()
 
@@ -26,13 +27,18 @@ class TestTableTable(unittest.TestCase):
 
     def test_copy_all(self):
         print('\nINFO: Validating table-table copy&paste all...')
-        layer = self.common._test_copy_all('source_table', 'target_table')
+        res = self.common._test_copy_all('source_table', 'target_table')
+        layer = res['OUTPUT']
         self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
 
     def test_copy_selected(self):
         print('\nINFO: Validating table-table copy&paste selected...')
-        layer = self.common._test_copy_selected('source_table', 'target_table')
+        res = self.common._test_copy_selected('source_table', 'target_table')
+        layer = res['OUTPUT']
+
         self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
 
     def test_update(self):
         print('\nINFO: Validating table-table update...')

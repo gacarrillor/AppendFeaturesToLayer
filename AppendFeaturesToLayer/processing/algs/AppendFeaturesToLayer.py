@@ -31,7 +31,8 @@ from qgis.core import (edit,
                        QgsProcessingOutputVectorLayer,
                        QgsProject,
                        QgsVectorLayerUtils,
-                       QgsVectorDataProvider)
+                       QgsVectorDataProvider,
+                       QgsProcessingOutputNumber)
 
 
 class AppendFeaturesToLayer(QgsProcessingAlgorithm):
@@ -41,6 +42,10 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
     OUTPUT = 'OUTPUT'
     OUTPUT_FIELD = 'OUTPUT_FIELD'
     ACTION_ON_DUPLICATE = 'ACTION_ON_DUPLICATE'
+
+    APPENDED_COUNT = 'APPENDED_COUNT'
+    UPDATED_COUNT = 'UPDATED_COUNT'
+    SKIPPED_COUNT = 'SKIPPED_COUNT'
 
     SKIP_FEATURE_TEXT = 'Skip feature'
     UPDATE_EXISTING_FEATURE_TEXT = 'Update existing feature'
@@ -86,7 +91,17 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                                                       QVariant(),
                                                       optional=True))
         self.addOutput(QgsProcessingOutputVectorLayer(self.OUTPUT,
-                                                        QCoreApplication.translate("AppendFeaturesToLayer", 'Target layer to paste new features')))
+                                                      QCoreApplication.translate("AppendFeaturesToLayer",
+                                                                                 "Target layer to paste new features")))
+        self.addOutput(QgsProcessingOutputNumber(self.APPENDED_COUNT,
+                                                 QCoreApplication.translate("AppendFeaturesToLayer",
+                                                                            "Number of features appended")))
+        self.addOutput(QgsProcessingOutputNumber(self.UPDATED_COUNT,
+                                                 QCoreApplication.translate("AppendFeaturesToLayer",
+                                                                            "Number of features updated")))
+        self.addOutput(QgsProcessingOutputNumber(self.SKIPPED_COUNT,
+                                                 QCoreApplication.translate("AppendFeaturesToLayer",
+                                                                            "Number of features skipped")))
 
     def name(self):
         return 'appendfeaturestolayer'
@@ -101,6 +116,11 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         target_fields_parameter = self.parameterAsFields(parameters, self.OUTPUT_FIELD, context)
         action_on_duplicate = self.parameterAsEnum(parameters, self.ACTION_ON_DUPLICATE, context)
 
+        results = {self.OUTPUT: None,
+                   self.APPENDED_COUNT: None,
+                   self.UPDATED_COUNT: None,
+                   self.SKIPPED_COUNT: None}
+
         target_value_dict = dict()
         source_field_unique_values = ''
         target_field_unique_values = ''
@@ -113,20 +133,20 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
         if source_field_unique_values and target_field_unique_values and not action_on_duplicate:
             feedback.reportError("\nWARNING: Since you have chosen source and target fields to compare, you need to choose an action to apply on duplicate features before running this algorithm.")
-            return {self.OUTPUT: None}
+            return results
 
         if action_on_duplicate and not (source_field_unique_values and target_field_unique_values):
             feedback.reportError("\nWARNING: Since you have chosen an action on duplicate features, you need to choose both source and target fields for comparing values before running this algorithm.")
-            return {self.OUTPUT: None}
+            return results
 
         caps = target.dataProvider().capabilities()
         if not(caps & QgsVectorDataProvider.AddFeatures):
             feedback.reportError("\nWARNING: The target layer does not support appending features to it! Choose another target layer.")
-            return {self.OUTPUT: None}
+            return results
 
         if action_on_duplicate == self.UPDATE_EXISTING_FEATURE and not(caps & QgsVectorDataProvider.ChangeAttributeValues and caps & QgsVectorDataProvider.ChangeGeometries):
             feedback.reportError("\nWARNING: The target layer does not support updating its features! Choose another action for duplicate features or choose another target layer.")
-            return {self.OUTPUT: None}
+            return results
 
         editable_before = False
         if target.isEditable():
@@ -134,7 +154,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             feedback.reportError("\nWARNING: You need to close the edit session on layer '{}' before running this algorithm.".format(
                 target.name()
             ))
-            return {self.OUTPUT: None}
+            return results
 
         # Define a mapping between source and target layer
         mapping = dict()
@@ -153,6 +173,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                     target_value_dict[f[target_field_unique_values]] = [int(f.id())]
 
         # Prepare features for the Copy and Paste
+        results[self.APPENDED_COUNT] = 0
         total = 100.0 / source.featureCount() if source.featureCount() else 0
         features = source.getFeatures()
         destType = target.geometryType()
@@ -244,7 +265,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 target.name(),
                 repr(e)
             ))
-            return {self.OUTPUT: None}
+            return results
 
 
         if action_on_duplicate == self.SKIP_FEATURE:
@@ -252,6 +273,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 skipped_features_count,
                 target.name()
             ))
+            results[self.SKIPPED_COUNT] = skipped_features_count
 
         if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
             feedback.pushInfo("\nUPDATED FEATURES: {} out of {} duplicate features were updated while copying features to '{}'!".format(
@@ -259,6 +281,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 duplicate_features_count,
                 target.name()
             ))
+            results[self.UPDATED_COUNT] = updated_features_count
 
         if not new_features:
             feedback.pushInfo("\nFINISHED WITHOUT APPENDED FEATURES: There were no features to append to '{}'.".format(
@@ -271,10 +294,12 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                     source.featureCount(),
                     target.name()
                 ))
+                results[self.APPENDED_COUNT] = len(new_features)
             else: # TODO do we really need this else message below?
                 feedback.reportError("\nERROR: The {} features from input layer could not be appended to '{}'. Sometimes this might be due to NOT NULL constraints that are not met.".format(
                     source.featureCount(),
                     target.name()
                 ))
 
-        return {self.OUTPUT: target}
+        results[self.OUTPUT] = target
+        return results

@@ -10,7 +10,10 @@ from qgis.testing.mocked import get_iface
 
 import processing
 
-from tests.utils import get_test_file_copy_path
+from tests.utils import (get_test_file_copy_path,
+                         APPENDED_COUNT,
+                         SKIPPED_COUNT,
+                         UPDATED_COUNT)
 
 start_app()
 
@@ -36,6 +39,9 @@ class TestParameterErrors(unittest.TestCase):
                         'ACTION_ON_DUPLICATE': None})
 
         self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res[APPENDED_COUNT])
+        self.assertIsNone(res[UPDATED_COUNT])
+        self.assertIsNone(res[SKIPPED_COUNT])
 
         # Target layer remains untouched
         layer = QgsVectorLayer("{}|layername=target_table".format(gpkg), 'a', 'ogr')
@@ -55,6 +61,9 @@ class TestParameterErrors(unittest.TestCase):
                         'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res[APPENDED_COUNT])
+        self.assertIsNone(res[UPDATED_COUNT])
+        self.assertIsNone(res[SKIPPED_COUNT])
 
         # Target layer remains untouched
         layer = QgsVectorLayer("{}|layername=target_table".format(gpkg), 'a', 'ogr')
@@ -71,6 +80,9 @@ class TestParameterErrors(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res[APPENDED_COUNT])
+        self.assertIsNone(res[UPDATED_COUNT])
+        self.assertIsNone(res[SKIPPED_COUNT])
 
         # Target layer remains untouched
         layer = QgsVectorLayer("{}|layername=target_table".format(gpkg), 'a', 'ogr')
@@ -93,6 +105,9 @@ class TestParameterErrors(unittest.TestCase):
                         'ACTION_ON_DUPLICATE': None})
 
         self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res[APPENDED_COUNT])
+        self.assertIsNone(res[UPDATED_COUNT])
+        self.assertIsNone(res[SKIPPED_COUNT])
 
         self.assertEqual(layer.featureCount(), 2)
 

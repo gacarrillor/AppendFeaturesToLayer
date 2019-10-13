@@ -13,6 +13,11 @@ import qgis.utils
 
 import processing
 
+
+APPENDED_COUNT = 'APPENDED_COUNT'
+UPDATED_COUNT = 'UPDATED_COUNT'
+SKIPPED_COUNT = 'SKIPPED_COUNT'
+
 from qgis.testing.mocked import get_iface
 
 # def get_iface():
@@ -55,17 +60,19 @@ class CommonTests(unittest.TestCase):
         print("### ", input_layer_name, output_layer_name)
         gpkg = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
+        output = QgsVectorLayer("{}|layername={}".format(gpkg, output_layer_name), "", "ogr")
+
         res = processing.run("etl_load:appendfeaturestolayer",
                              {'INPUT': "{}|layername={}".format(gpkg, input_layer_name),
                               'INPUT_FIELD': None,
-                              'OUTPUT': "{}|layername={}".format(gpkg, output_layer_name),
+                              'OUTPUT': output,
                               'OUTPUT_FIELD': None,
                               'ACTION_ON_DUPLICATE': None})
 
-        layer = QgsVectorLayer("{}|layername={}".format(gpkg, output_layer_name), 'a', 'ogr')
-        self.assertTrue(layer.isValid())
-        #self.assertEqual(layer.featureCount(), 2)
-        return layer
+        self.assertTrue(output.isValid())
+        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[SKIPPED_COUNT])
+        return res
 
     def _test_copy_selected(self, input_layer_name, output_layer_name, select_id=1):
         print("### ", input_layer_name, output_layer_name)
@@ -88,7 +95,10 @@ class CommonTests(unittest.TestCase):
                               'OUTPUT_FIELD': None,
                               'ACTION_ON_DUPLICATE': None})
 
-        return res['OUTPUT']
+        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        return res
 
     def _test_update(self, input_layer_name, output_layer_name):
         print("### ", input_layer_name, output_layer_name)
@@ -110,6 +120,9 @@ class CommonTests(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': None})
 
         self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[SKIPPED_COUNT])
 
         input_layer.dataProvider().changeAttributeValues({1: {3: 30}})  # real_value --> 30
         new_feature = QgsFeature()
@@ -124,6 +137,9 @@ class CommonTests(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': 2})  # Update
 
         self.assertEqual(res['OUTPUT'].featureCount(), 3)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+        self.assertEqual(res[UPDATED_COUNT], 2)
+        self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
 
         feature = next(output_layer.getFeatures('"name"=\'abc\''))
         self.assertEqual(feature['real_value'], 30)
@@ -152,6 +168,9 @@ class CommonTests(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': None})
 
         self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[SKIPPED_COUNT])
 
         input_layer.dataProvider().changeAttributeValues({1: {3: 30}})  # real_value --> 30
         input_layer.dataProvider().changeAttributeValues({2: {3: 50}})  # real_value --> 50
@@ -164,6 +183,9 @@ class CommonTests(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 0)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 2)
 
         feature = next(output_layer.getFeatures('"name"=\'abc\''))
         self.assertEqual(feature['real_value'], 3.1416)
@@ -192,6 +214,9 @@ class CommonTests(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': None})
 
         self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[SKIPPED_COUNT])
 
         input_layer.dataProvider().changeAttributeValues({1: {3: 30}})  # real_value --> 30
         new_feature = QgsFeature()
@@ -206,6 +231,9 @@ class CommonTests(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertEqual(res['OUTPUT'].featureCount(), 3)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 2)
 
         feature = next(output_layer.getFeatures('"name"=\'abc\''))
         self.assertEqual(feature['real_value'], 3.1416)
@@ -234,6 +262,9 @@ class CommonTests(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': None})
 
         self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[SKIPPED_COUNT])
 
         input_layer.dataProvider().changeAttributeValues({1: {1: 'abcd'}})  # text_value --> abcd
         input_layer.dataProvider().changeAttributeValues({2: {1: 'defg'}})  # text_value --> defg
@@ -246,3 +277,6 @@ class CommonTests(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertEqual(res['OUTPUT'].featureCount(), 4)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 0)  # Input features not found in target

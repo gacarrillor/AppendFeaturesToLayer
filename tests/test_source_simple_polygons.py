@@ -10,7 +10,8 @@ from qgis.testing.mocked import get_iface
 
 import processing
 
-from tests.utils import get_test_file_copy_path, CommonTests
+from tests.utils import (CommonTests,
+                         APPENDED_COUNT)
 
 start_app()
 
@@ -26,13 +27,18 @@ class TestSimplePolySimplePoly(unittest.TestCase):
 
     def test_copy_all(self):
         print('\nINFO: Validating simple_pol-simple_pol copy&paste all...')
-        layer = self.common._test_copy_all('source_simple_polygons', 'target_simple_polygons')
+        res = self.common._test_copy_all('source_simple_polygons', 'target_simple_polygons')
+        layer = res['OUTPUT']
         self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res['APPENDED_COUNT'], 2)
 
     def test_copy_selected(self):
         print('\nINFO: Validating simple_pol-simple_pol copy&paste selected...')
-        layer = self.common._test_copy_selected('source_simple_polygons', 'target_simple_polygons')
+        res = self.common._test_copy_selected('source_simple_polygons', 'target_simple_polygons')
+        layer = res['OUTPUT']
+
         self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
 
     def test_update(self):
         print('\nINFO: Validating simple_pol-simple_pol update...')
@@ -68,16 +74,21 @@ class TestSimplePolySimpleLine(unittest.TestCase):
 
     def test_copy_all(self):
         print('\nINFO: Validating simple_pol-simple_lin copy&paste all...')
-        layer = self.common._test_copy_all('source_simple_polygons', 'target_simple_lines')
+        res = self.common._test_copy_all('source_simple_polygons', 'target_simple_lines')
+        layer = res['OUTPUT']
         self.assertEqual(layer.featureCount(), 1)
 
     def test_copy_selected(self):
         print('\nINFO: Validating simple_pol-simple_lin copy&paste selected...')
-        layer = self.common._test_copy_selected('source_simple_polygons', 'target_simple_lines')
+        res = self.common._test_copy_selected('source_simple_polygons', 'target_simple_lines')
+        layer = res['OUTPUT']
         self.assertEqual(layer.featureCount(), 0)  # Selected id has a hole, cannot be copied
+        self.assertEqual(res[APPENDED_COUNT], 0)
 
-        layer = self.common._test_copy_selected('source_simple_polygons', 'target_simple_lines', 2)
+        res = self.common._test_copy_selected('source_simple_polygons', 'target_simple_lines', 2)
+        layer = res['OUTPUT']
         self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
 
     @classmethod
     def tearDownClass(self):
