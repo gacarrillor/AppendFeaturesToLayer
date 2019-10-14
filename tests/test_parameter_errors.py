@@ -36,7 +36,7 @@ class TestParameterErrors(unittest.TestCase):
                         'INPUT_FIELD': 'name',
                         'OUTPUT': "{}|layername=target_table".format(gpkg),
                         'OUTPUT_FIELD': 'name',
-                        'ACTION_ON_DUPLICATE': None})
+                        'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])
@@ -102,7 +102,7 @@ class TestParameterErrors(unittest.TestCase):
                         'INPUT_FIELD': None,
                         'OUTPUT': layer,
                         'OUTPUT_FIELD': None,
-                        'ACTION_ON_DUPLICATE': None})
+                        'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])

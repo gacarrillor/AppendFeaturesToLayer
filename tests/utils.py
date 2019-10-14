@@ -67,7 +67,7 @@ class CommonTests(unittest.TestCase):
                               'INPUT_FIELD': None,
                               'OUTPUT': output,
                               'OUTPUT_FIELD': None,
-                              'ACTION_ON_DUPLICATE': None})
+                              'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertTrue(output.isValid())
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
@@ -93,7 +93,7 @@ class CommonTests(unittest.TestCase):
                               'INPUT_FIELD': None,
                               'OUTPUT': output_layer,
                               'OUTPUT_FIELD': None,
-                              'ACTION_ON_DUPLICATE': None})
+                              'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
@@ -117,7 +117,7 @@ class CommonTests(unittest.TestCase):
                               'INPUT_FIELD': None,
                               'OUTPUT': output_layer,
                               'OUTPUT_FIELD': None,
-                              'ACTION_ON_DUPLICATE': None})
+                              'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertEqual(res['OUTPUT'].featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
@@ -165,7 +165,7 @@ class CommonTests(unittest.TestCase):
                               'INPUT_FIELD': None,
                               'OUTPUT': output_layer,
                               'OUTPUT_FIELD': None,
-                              'ACTION_ON_DUPLICATE': None})
+                              'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertEqual(res['OUTPUT'].featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
@@ -211,7 +211,7 @@ class CommonTests(unittest.TestCase):
                               'INPUT_FIELD': None,
                               'OUTPUT': output_layer,
                               'OUTPUT_FIELD': None,
-                              'ACTION_ON_DUPLICATE': None})
+                              'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertEqual(res['OUTPUT'].featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
@@ -259,7 +259,7 @@ class CommonTests(unittest.TestCase):
                               'INPUT_FIELD': None,
                               'OUTPUT': output_layer,
                               'OUTPUT_FIELD': None,
-                              'ACTION_ON_DUPLICATE': None})
+                              'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertEqual(res['OUTPUT'].featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)

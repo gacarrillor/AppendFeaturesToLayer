@@ -47,8 +47,10 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
     UPDATED_COUNT = 'UPDATED_COUNT'
     SKIPPED_COUNT = 'SKIPPED_COUNT'
 
+    NO_ACTION_TEXT = "Don't even look for duplicates, just append all features"
     SKIP_FEATURE_TEXT = 'Skip feature'
     UPDATE_EXISTING_FEATURE_TEXT = 'Update existing feature'
+    NO_ACTION = 0
     SKIP_FEATURE = 1
     UPDATE_EXISTING_FEATURE = 2
 
@@ -85,11 +87,11 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                                                       self.OUTPUT,
                                                       optional=True))
         self.addParameter(QgsProcessingParameterEnum(self.ACTION_ON_DUPLICATE,
-                                                      QCoreApplication.translate("AppendFeaturesToLayer", 'Action when duplicate feature is found'),
-                                                      [None, self.SKIP_FEATURE_TEXT, self.UPDATE_EXISTING_FEATURE_TEXT],
-                                                      False,
-                                                      QVariant(),
-                                                      optional=True))
+                                                     QCoreApplication.translate("AppendFeaturesToLayer", 'Action for duplicate features'),
+                                                     [self.NO_ACTION_TEXT, self.SKIP_FEATURE_TEXT, self.UPDATE_EXISTING_FEATURE_TEXT],
+                                                     False,
+                                                     self.NO_ACTION_TEXT,
+                                                     optional=False))
         self.addOutput(QgsProcessingOutputVectorLayer(self.OUTPUT,
                                                       QCoreApplication.translate("AppendFeaturesToLayer",
                                                                                  "Target layer to paste new features")))
@@ -131,11 +133,11 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         if target_fields_parameter:
             target_field_unique_values = target_fields_parameter[0]
 
-        if source_field_unique_values and target_field_unique_values and not action_on_duplicate:
+        if source_field_unique_values and target_field_unique_values and action_on_duplicate == self.NO_ACTION:
             feedback.reportError("\nWARNING: Since you have chosen source and target fields to compare, you need to choose an action to apply on duplicate features before running this algorithm.")
             return results
 
-        if action_on_duplicate and not (source_field_unique_values and target_field_unique_values):
+        if action_on_duplicate != self.NO_ACTION and not (source_field_unique_values and target_field_unique_values):
             feedback.reportError("\nWARNING: Since you have chosen an action on duplicate features, you need to choose both source and target fields for comparing values before running this algorithm.")
             return results
 
