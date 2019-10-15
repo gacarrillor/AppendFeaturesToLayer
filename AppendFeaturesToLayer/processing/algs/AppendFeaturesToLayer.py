@@ -32,7 +32,8 @@ from qgis.core import (edit,
                        QgsProject,
                        QgsVectorLayerUtils,
                        QgsVectorDataProvider,
-                       QgsProcessingOutputNumber)
+                       QgsProcessingOutputNumber,
+                       QgsFeatureRequest)
 
 
 class AppendFeaturesToLayer(QgsProcessingAlgorithm):
@@ -134,7 +135,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             target_field_unique_values = target_fields_parameter[0]
 
         if source_field_unique_values and target_field_unique_values and action_on_duplicate == self.NO_ACTION:
-            feedback.reportError("\nWARNING: Since you have chosen source and target fields to compare, you need to choose an action to apply on duplicate features before running this algorithm.")
+            feedback.reportError("\nWARNING: Since you have chosen source and target fields to compare, you need to choose a valid action to apply on duplicate features before running this algorithm.")
             return results
 
         if action_on_duplicate != self.NO_ACTION and not (source_field_unique_values and target_field_unique_values):
@@ -185,22 +186,25 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         updated_geometries = dict()
         updated_features_count = 0
         updated_geometries_count = 0
-        skipped_features_count = 0
-        duplicate_features_count = 0
+        skipped_features_count = 0  # To properly count features that were skipped
+        duplicate_features_set = set()  # To properly count features that were updated
         for current, in_feature in enumerate(features):
             if feedback.isCanceled():
                 break
 
             target_feature_exists = False
 
+            # If skip is the action, skip as soon as possible
             if source_field_unique_values:
                 if in_feature[source_field_unique_values] in target_value_dict:
-                    duplicate_features_count += 1
                     if action_on_duplicate == self.SKIP_FEATURE:
-                        skipped_features_count += 1
+                        request = QgsFeatureRequest(target_value_dict[in_feature[source_field_unique_values]])
+                        request.setFlags(QgsFeatureRequest.NoGeometry)
+                        request.setSubsetOfAttributes([])  # Note: this adds a new flag
+                        skipped_features_count += len([f for f in target.getFeatures(request)])
                         continue
-                    else:
-                        target_feature_exists = True
+
+                    target_feature_exists = True
 
             attrs = {target_idx: in_feature[source_idx] for target_idx, source_idx in mapping.items()}
 
@@ -224,6 +228,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
             if target_feature_exists and action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
                 for t_f in target.getFeatures(target_value_dict[in_feature[source_field_unique_values]]):
+                    duplicate_features_set.add(t_f.id())
                     updated_features[t_f.id()] = attrs
                     if target.isSpatial():
                         updated_geometries[t_f.id()] = geom
@@ -280,7 +285,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
             feedback.pushInfo("\nUPDATED FEATURES: {} out of {} duplicate features were updated while copying features to '{}'!".format(
                 updated_features_count,
-                duplicate_features_count,
+                len(duplicate_features_set),
                 target.name()
             ))
             results[self.UPDATED_COUNT] = updated_features_count

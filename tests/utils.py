@@ -56,14 +56,16 @@ def import_processing():
 class CommonTests(unittest.TestCase):
     """ Utility functions """
 
-    def _test_copy_all(self, input_layer_name, output_layer_name):
+    def _test_copy_all(self, input_layer_name, output_layer_name, output_path=None):
         print("### ", input_layer_name, output_layer_name)
-        gpkg = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
-        output = QgsVectorLayer("{}|layername={}".format(gpkg, output_layer_name), "", "ogr")
+        if output_path is None:
+            output_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
+
+        output = QgsVectorLayer("{}|layername={}".format(output_path, output_layer_name), "", "ogr")
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': "{}|layername={}".format(gpkg, input_layer_name),
+                             {'INPUT': "{}|layername={}".format(output_path, input_layer_name),
                               'INPUT_FIELD': None,
                               'OUTPUT': output,
                               'OUTPUT_FIELD': None,
