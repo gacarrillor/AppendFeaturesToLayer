@@ -1,3 +1,7 @@
+[![License](https://img.shields.io/github/license/gacarrillor/AppendFeaturesToLayer.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-%28gpl-3%29)
+[![Build Status](https://api.travis-ci.org/gacarrillor/AppendFeaturesToLayer.svg?branch=master)](https://travis-ci.org/gacarrillor/AppendFeaturesToLayer)
+
+
 # Append Features to Layer
 
 Processing plugin-based provider for QGIS 3 that adds an algorithm for appending features to a vector layer.
@@ -27,3 +31,9 @@ Additionally, as an example, this plugin also installs a Processing model that u
 [1]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/newly_added_algorithm_and_model.png
 [2]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/model_etl_load.png
 [3]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/etl_basic_model.png
+
+
+Running Unit Tests Locally
+----------------------
+
+`me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=latest -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
