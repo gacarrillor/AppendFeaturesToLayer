@@ -135,6 +135,108 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[UPDATED_COUNT], 1)  # We do 2 updates on a single feature, the count is 1!
         self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
 
+    def test_skip_different_field_types_can_convert(self):
+        print('\nINFO: Validating table-table skip different field types can convert...')
+
+        res = self.common._test_copy_selected('source_table', 'target_table')
+        layer = res['OUTPUT']
+
+        self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+
+        output_path = layer.source().split('|')[0]
+
+        # Let's overwrite the target feature to have a float as string
+        layer.dataProvider().changeAttributeValues({1: {1: "3.1416"}})  # name --> "3.1416"
+
+        check_list_values = [f['name'] for f in layer.getFeatures()]
+        self.assertEqual(len(check_list_values), 1)
+        self.assertEqual(check_list_values[0], "3.1416")
+
+        input_layer_path = "{}|layername={}".format(output_path, 'source_table')
+        input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+
+        # Now let's check counts for skip action
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'INPUT': input_layer,
+                              'INPUT_FIELD': 'real_value',
+                              'OUTPUT': layer,
+                              'OUTPUT_FIELD': 'name',
+                              'ACTION_ON_DUPLICATE': 1})  # Skip
+
+        self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 1)
+
+        # Now test the reverse
+        res = self.common._test_copy_selected('source_table', 'target_table')
+        layer = res['OUTPUT']
+
+        self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+
+        output_path = layer.source().split('|')[0]
+
+        # Let's overwrite the target feature to have a float as string
+        input_layer_path = "{}|layername={}".format(output_path, 'source_table')
+        input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+        input_layer.dataProvider().changeAttributeValues({1: {1: "3.1416"}})  # name --> "3.1416"
+
+        check_list_values = [f['name'] for f in input_layer.getFeatures()]
+        self.assertEqual(len(check_list_values), 2)
+        self.assertEqual(check_list_values, ["3.1416", "def"])
+
+        # Now let's check counts for skip action
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'INPUT': input_layer,
+                              'INPUT_FIELD': 'name',
+                              'OUTPUT': layer,
+                              'OUTPUT_FIELD': 'real_value',
+                              'ACTION_ON_DUPLICATE': 1})  # Skip
+
+        self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 1)
+
+    def test_skip_different_field_types_cannot_convert(self):
+        print('\nINFO: Validating table-table skip different field types cannot convert...')
+
+        # Since it can't convert between types (and since types are different), no duplicates can be found, so
+        # everything is appended.
+
+        res = self.common._test_copy_selected('source_table', 'target_table')
+        layer = res['OUTPUT']
+
+        self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+
+        output_path = layer.source().split('|')[0]
+
+        # Let's overwrite the target feature to have a float as string
+        layer.dataProvider().changeAttributeValues({1: {1: "3.1416"}})  # name --> "3.1416"
+
+        check_list_values = [f['name'] for f in layer.getFeatures()]
+        self.assertEqual(len(check_list_values), 1)
+        self.assertEqual(check_list_values[0], "3.1416")
+
+        input_layer_path = "{}|layername={}".format(output_path, 'source_table')
+        input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+
+        # Now let's check counts for skip action
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'INPUT': input_layer,
+                              'INPUT_FIELD': 'real_value',
+                              'OUTPUT': layer,
+                              'OUTPUT_FIELD': 'date_value',
+                              'ACTION_ON_DUPLICATE': 1})  # Skip
+
+        self.assertEqual(layer.featureCount(), 3)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 0)
+
     @classmethod
     def tearDownClass(self):
         print('INFO: Tear down test_table_table')

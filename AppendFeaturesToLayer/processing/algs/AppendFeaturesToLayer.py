@@ -16,7 +16,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QVariant, QCoreApplication
+from qgis.PyQt.QtCore import (QVariant,
+                              QCoreApplication)
 
 from qgis.core import (edit,
                        QgsEditError,
@@ -127,12 +128,19 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         target_value_dict = dict()
         source_field_unique_values = ''
         target_field_unique_values = ''
+        source_field_type = None
+        target_field_type = None
 
         if source_fields_parameter:
             source_field_unique_values = source_fields_parameter[0]
+            source_field_type = source.fields().field(source_field_unique_values).type()
 
         if target_fields_parameter:
             target_field_unique_values = target_fields_parameter[0]
+            target_field_type = target.fields().field(target_field_unique_values).type()
+
+        if source_field_type != target_field_type:
+            feedback.pushInfo("\nWARNING: Source and target fields to compare have different field types.")
 
         if source_field_unique_values and target_field_unique_values and action_on_duplicate == self.NO_ACTION:
             feedback.reportError("\nWARNING: Since you have chosen source and target fields to compare, you need to choose a valid action to apply on duplicate features before running this algorithm.")
@@ -193,12 +201,18 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 break
 
             target_feature_exists = False
+            duplicate_target_value = None
 
             # If skip is the action, skip as soon as possible
             if source_field_unique_values:
-                if in_feature[source_field_unique_values] in target_value_dict:
+                duplicate_target, duplicate_target_value = self.find_duplicate_value(
+                    in_feature[source_field_unique_values],
+                    source_field_type,
+                    target_value_dict,
+                    target_field_type)
+                if duplicate_target:
                     if action_on_duplicate == self.SKIP_FEATURE:
-                        request = QgsFeatureRequest(target_value_dict[in_feature[source_field_unique_values]])
+                        request = QgsFeatureRequest(target_value_dict[duplicate_target_value])  # Get target feature ids
                         request.setFlags(QgsFeatureRequest.NoGeometry)
                         request.setSubsetOfAttributes([])  # Note: this adds a new flag
                         skipped_features_count += len([f for f in target.getFeatures(request)])
@@ -227,7 +241,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                     geom.avoidIntersections(QgsProject.instance().avoidIntersectionsLayers())
 
             if target_feature_exists and action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
-                for t_f in target.getFeatures(target_value_dict[in_feature[source_field_unique_values]]):
+                for t_f in target.getFeatures(target_value_dict[duplicate_target_value]):
                     duplicate_features_set.add(t_f.id())
                     updated_features[t_f.id()] = attrs
                     if target.isSpatial():
@@ -310,3 +324,31 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
         results[self.OUTPUT] = target
         return results
+
+    def find_duplicate_value(self, source_value, source_field_type, target_value_dict, target_field_type):
+        """
+        Check if source_value is in target layer. First, as is, and if necessary as a converted value.
+
+        :param source_value: single value from the source layer
+        :param source_field_type: QVariant.Type
+        :param target_value_dict: dict of unique values in the target layer. We only use keys in this function.
+        :param target_field_type: QVariant.Type
+        :return: Whether the source_value is duplicated in the target layer and, if so, also the target value
+        """
+        # Direct comparison
+        if source_field_type == target_field_type:
+            if source_value in target_value_dict:
+                return True, source_value
+            else:
+                return False, None
+
+        # We first need to convert types before comparing...
+        qvariant_value = QVariant(source_value)
+        res_can_convert = qvariant_value.canConvert(target_field_type)
+        if res_can_convert:
+            res_convert = qvariant_value.convert(target_field_type)
+            if res_convert:
+                if qvariant_value.value() in target_value_dict:
+                    return True, qvariant_value.value()
+
+        return False, None
