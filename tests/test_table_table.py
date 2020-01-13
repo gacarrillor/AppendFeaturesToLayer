@@ -28,14 +28,14 @@ class TestTableTable(unittest.TestCase):
     def test_copy_all(self):
         print('\nINFO: Validating table-table copy&paste all...')
         res = self.common._test_copy_all('source_table', 'target_table')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
 
     def test_copy_selected(self):
         print('\nINFO: Validating table-table copy&paste selected...')
         res = self.common._test_copy_selected('source_table', 'target_table')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)
@@ -60,19 +60,19 @@ class TestTableTable(unittest.TestCase):
         print('\nINFO: Validating table-table skip/update 1:m...')
         # Let's copy twice the same 2 features to end up with 1:m (twice)
         res = self.common._test_copy_all('source_table', 'target_table')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
         output_path = layer.source().split('|')[0]
         res = self.common._test_copy_all('source_table', 'target_table', output_path)
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 4)
         self.assertEqual(res[APPENDED_COUNT], 2)
 
         # Now let's check counts for skip action
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': "{}|layername={}".format(output_path, 'source_table'),
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': layer,
-                              'OUTPUT_FIELD': 'name',
+                             {'SOURCE_LAYER': "{}|layername={}".format(output_path, 'source_table'),
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'name',
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertEqual(layer.featureCount(), 4)
@@ -82,10 +82,10 @@ class TestTableTable(unittest.TestCase):
 
         # And counts for update action
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': "{}|layername={}".format(output_path, 'source_table'),
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': layer,
-                              'OUTPUT_FIELD': 'name',
+                             {'SOURCE_LAYER': "{}|layername={}".format(output_path, 'source_table'),
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'name',
                               'ACTION_ON_DUPLICATE': 2})  # Update
 
         self.assertEqual(layer.featureCount(), 4)
@@ -97,7 +97,7 @@ class TestTableTable(unittest.TestCase):
         print('\nINFO: Validating table-table skip/update m:1...')
 
         res = self.common._test_copy_all('source_table', 'target_table')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
         output_path = layer.source().split('|')[0]
 
         # Let's give both source features the same name to have an m:1 scenario
@@ -111,10 +111,10 @@ class TestTableTable(unittest.TestCase):
 
         # Now let's check counts for skip action
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': layer,
-                              'OUTPUT_FIELD': 'name',
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'name',
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertEqual(layer.featureCount(), 2)
@@ -124,10 +124,10 @@ class TestTableTable(unittest.TestCase):
 
         # And counts for update action
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': layer,
-                              'OUTPUT_FIELD': 'name',
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'name',
                               'ACTION_ON_DUPLICATE': 2})  # Update
 
         self.assertEqual(layer.featureCount(), 2)
@@ -139,7 +139,7 @@ class TestTableTable(unittest.TestCase):
         print('\nINFO: Validating table-table skip different field types can convert...')
 
         res = self.common._test_copy_selected('source_table', 'target_table')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)
@@ -158,10 +158,10 @@ class TestTableTable(unittest.TestCase):
 
         # Now let's check counts for skip action
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': 'real_value',
-                              'OUTPUT': layer,
-                              'OUTPUT_FIELD': 'name',
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'real_value',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'name',
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertEqual(layer.featureCount(), 2)
@@ -171,7 +171,7 @@ class TestTableTable(unittest.TestCase):
 
         # Now test the reverse
         res = self.common._test_copy_selected('source_table', 'target_table')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)
@@ -189,10 +189,10 @@ class TestTableTable(unittest.TestCase):
 
         # Now let's check counts for skip action
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': layer,
-                              'OUTPUT_FIELD': 'real_value',
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'real_value',
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertEqual(layer.featureCount(), 2)
@@ -207,7 +207,7 @@ class TestTableTable(unittest.TestCase):
         # everything is appended.
 
         res = self.common._test_copy_selected('source_table', 'target_table')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)
@@ -226,10 +226,10 @@ class TestTableTable(unittest.TestCase):
 
         # Now let's check counts for skip action
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': 'real_value',
-                              'OUTPUT': layer,
-                              'OUTPUT_FIELD': 'date_value',
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'real_value',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'date_value',
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
         self.assertEqual(layer.featureCount(), 3)

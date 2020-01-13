@@ -39,19 +39,19 @@ from qgis.core import (edit,
 
 class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
-    INPUT = 'INPUT'
-    INPUT_FIELD = 'INPUT_FIELD'
-    OUTPUT = 'OUTPUT'
-    OUTPUT_FIELD = 'OUTPUT_FIELD'
+    INPUT = 'SOURCE_LAYER'
+    INPUT_FIELD = 'SOURCE_FIELD'
+    OUTPUT = 'TARGET_LAYER'
+    OUTPUT_FIELD = 'TARGET_FIELD'
     ACTION_ON_DUPLICATE = 'ACTION_ON_DUPLICATE'
 
     APPENDED_COUNT = 'APPENDED_COUNT'
     UPDATED_COUNT = 'UPDATED_COUNT'
     SKIPPED_COUNT = 'SKIPPED_COUNT'
 
-    NO_ACTION_TEXT = "Don't even look for duplicates, just append all features"
-    SKIP_FEATURE_TEXT = 'Skip feature'
-    UPDATE_EXISTING_FEATURE_TEXT = 'Update existing feature'
+    NO_ACTION_TEXT = "Just APPEND all features, no matter of duplicates"
+    SKIP_FEATURE_TEXT = 'If duplicate is found, SKIP feature'
+    UPDATE_EXISTING_FEATURE_TEXT = 'If duplcate is found, UPDATE existing feature'
     NO_ACTION = 0
     SKIP_FEATURE = 1
     UPDATE_EXISTING_FEATURE = 2
@@ -66,10 +66,13 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         return 'vectortable'
 
     def tags(self):
-        return (QCoreApplication.translate("AppendFeaturesToLayer", 'append,copy,insert,update,features,paste,load,etl')).split(',')
+        return (QCoreApplication.translate("AppendFeaturesToLayer", 'append,copy,insert,update,features,paste,load,etl,load data')).split(',')
 
     def __init__(self):
         super().__init__()
+
+    def shortHelpString(self):
+        return QCoreApplication.translate("AppendFeaturesToLayer", "This algorithm copies features from a source layer into a target layer.")
 
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
@@ -255,7 +258,6 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         # Do the Copy and Paste
         res_add_features = False
         try:
-            # This might print error messages... But, hey! That's what we want!
             with edit(target):
                 target.beginEditCommand("Appending/Updating features...")
 

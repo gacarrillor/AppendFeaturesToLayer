@@ -28,14 +28,14 @@ class TestSimplePolySimplePoly(unittest.TestCase):
     def test_copy_all(self):
         print('\nINFO: Validating simple_pol-simple_pol copy&paste all...')
         res = self.common._test_copy_all('source_simple_polygons', 'target_simple_polygons')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res['APPENDED_COUNT'], 2)
 
     def test_copy_selected(self):
         print('\nINFO: Validating simple_pol-simple_pol copy&paste selected...')
         res = self.common._test_copy_selected('source_simple_polygons', 'target_simple_polygons')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)
@@ -75,18 +75,18 @@ class TestSimplePolySimpleLine(unittest.TestCase):
     def test_copy_all(self):
         print('\nINFO: Validating simple_pol-simple_lin copy&paste all...')
         res = self.common._test_copy_all('source_simple_polygons', 'target_simple_lines')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 1)
 
     def test_copy_selected(self):
         print('\nINFO: Validating simple_pol-simple_lin copy&paste selected...')
         res = self.common._test_copy_selected('source_simple_polygons', 'target_simple_lines')
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 0)  # Selected id has a hole, cannot be copied
         self.assertEqual(res[APPENDED_COUNT], 0)
 
         res = self.common._test_copy_selected('source_simple_polygons', 'target_simple_lines', 2)
-        layer = res['OUTPUT']
+        layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)
 

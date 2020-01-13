@@ -65,10 +65,10 @@ class CommonTests(unittest.TestCase):
         output = QgsVectorLayer("{}|layername={}".format(output_path, output_layer_name), "", "ogr")
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': "{}|layername={}".format(output_path, input_layer_name),
-                              'INPUT_FIELD': None,
-                              'OUTPUT': output,
-                              'OUTPUT_FIELD': None,
+                             {'SOURCE_LAYER': "{}|layername={}".format(output_path, input_layer_name),
+                              'SOURCE_FIELD': None,
+                              'TARGET_LAYER': output,
+                              'TARGET_FIELD': None,
                               'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertTrue(output.isValid())
@@ -91,10 +91,10 @@ class CommonTests(unittest.TestCase):
         input_layer.select(select_id)  # fid=1
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': QgsProcessingFeatureSourceDefinition(input_layer_path, True),
-                              'INPUT_FIELD': None,
-                              'OUTPUT': output_layer,
-                              'OUTPUT_FIELD': None,
+                             {'SOURCE_LAYER': QgsProcessingFeatureSourceDefinition(input_layer_path, True),
+                              'SOURCE_FIELD': None,
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': None,
                               'ACTION_ON_DUPLICATE': 0})  # No action
 
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
@@ -115,13 +115,13 @@ class CommonTests(unittest.TestCase):
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': None,
-                              'OUTPUT': output_layer,
-                              'OUTPUT_FIELD': None,
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': None,
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': None,
                               'ACTION_ON_DUPLICATE': 0})  # No action
 
-        self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
@@ -132,13 +132,13 @@ class CommonTests(unittest.TestCase):
         input_layer.dataProvider().addFeatures([new_feature])
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': output_layer,
-                              'OUTPUT_FIELD': 'name',
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': 'name',
                               'ACTION_ON_DUPLICATE': 2})  # Update
 
-        self.assertEqual(res['OUTPUT'].featureCount(), 3)
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
         self.assertEqual(res[APPENDED_COUNT], 1)
         self.assertEqual(res[UPDATED_COUNT], 2)
         self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
@@ -163,13 +163,13 @@ class CommonTests(unittest.TestCase):
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': None,
-                              'OUTPUT': output_layer,
-                              'OUTPUT_FIELD': None,
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': None,
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': None,
                               'ACTION_ON_DUPLICATE': 0})  # No action
 
-        self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
@@ -178,13 +178,13 @@ class CommonTests(unittest.TestCase):
         input_layer.dataProvider().changeAttributeValues({2: {3: 50}})  # real_value --> 50
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': output_layer,
-                              'OUTPUT_FIELD': 'name',
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': 'name',
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
-        self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 0)
         self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 2)
@@ -209,13 +209,13 @@ class CommonTests(unittest.TestCase):
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': None,
-                              'OUTPUT': output_layer,
-                              'OUTPUT_FIELD': None,
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': None,
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': None,
                               'ACTION_ON_DUPLICATE': 0})  # No action
 
-        self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
@@ -226,13 +226,13 @@ class CommonTests(unittest.TestCase):
         input_layer.dataProvider().addFeatures([new_feature])
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': output_layer,
-                              'OUTPUT_FIELD': 'name',
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': 'name',
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
-        self.assertEqual(res['OUTPUT'].featureCount(), 3)
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
         self.assertEqual(res[APPENDED_COUNT], 1)
         self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 2)
@@ -257,13 +257,13 @@ class CommonTests(unittest.TestCase):
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': None,
-                              'OUTPUT': output_layer,
-                              'OUTPUT_FIELD': None,
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': None,
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': None,
                               'ACTION_ON_DUPLICATE': 0})  # No action
 
-        self.assertEqual(res['OUTPUT'].featureCount(), 2)
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
@@ -272,13 +272,13 @@ class CommonTests(unittest.TestCase):
         input_layer.dataProvider().changeAttributeValues({2: {1: 'defg'}})  # text_value --> defg
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': input_layer,
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': output_layer,
-                              'OUTPUT_FIELD': 'name',
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': 'name',
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
-        self.assertEqual(res['OUTPUT'].featureCount(), 4)
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 4)
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 0)  # Input features not found in target

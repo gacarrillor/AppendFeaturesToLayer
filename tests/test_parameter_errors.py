@@ -32,13 +32,13 @@ class TestParameterErrors(unittest.TestCase):
         gpkg = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                       {'INPUT': "{}|layername=source_table".format(gpkg),
-                        'INPUT_FIELD': 'name',
-                        'OUTPUT': "{}|layername=target_table".format(gpkg),
-                        'OUTPUT_FIELD': 'name',
+                       {'SOURCE_LAYER': "{}|layername=source_table".format(gpkg),
+                        'SOURCE_FIELD': 'name',
+                        'TARGET_LAYER': "{}|layername=target_table".format(gpkg),
+                        'TARGET_FIELD': 'name',
                         'ACTION_ON_DUPLICATE': 0})  # No action
 
-        self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])
         self.assertIsNone(res[UPDATED_COUNT])
         self.assertIsNone(res[SKIPPED_COUNT])
@@ -54,13 +54,13 @@ class TestParameterErrors(unittest.TestCase):
         gpkg = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                       {'INPUT': "{}|layername=source_table".format(gpkg),
-                        'INPUT_FIELD': None,
-                        'OUTPUT': "{}|layername=target_table".format(gpkg),
-                        'OUTPUT_FIELD': 'name',
+                       {'SOURCE_LAYER': "{}|layername=source_table".format(gpkg),
+                        'SOURCE_FIELD': None,
+                        'TARGET_LAYER': "{}|layername=target_table".format(gpkg),
+                        'TARGET_FIELD': 'name',
                         'ACTION_ON_DUPLICATE': 1})  # Skip
 
-        self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])
         self.assertIsNone(res[UPDATED_COUNT])
         self.assertIsNone(res[SKIPPED_COUNT])
@@ -73,13 +73,13 @@ class TestParameterErrors(unittest.TestCase):
 
         # Now the other way around
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'INPUT': "{}|layername=source_table".format(gpkg),
-                              'INPUT_FIELD': 'name',
-                              'OUTPUT': "{}|layername=target_table".format(gpkg),
-                              'OUTPUT_FIELD': None,
+                             {'SOURCE_LAYER': "{}|layername=source_table".format(gpkg),
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': "{}|layername=target_table".format(gpkg),
+                              'TARGET_FIELD': None,
                               'ACTION_ON_DUPLICATE': 1})  # Skip
 
-        self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])
         self.assertIsNone(res[UPDATED_COUNT])
         self.assertIsNone(res[SKIPPED_COUNT])
@@ -98,13 +98,13 @@ class TestParameterErrors(unittest.TestCase):
         self.assertTrue(layer.isValid())
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                       {'INPUT': "{}|layername=source_table".format(gpkg),
-                        'INPUT_FIELD': None,
-                        'OUTPUT': layer,
-                        'OUTPUT_FIELD': None,
+                       {'SOURCE_LAYER': "{}|layername=source_table".format(gpkg),
+                        'SOURCE_FIELD': None,
+                        'TARGET_LAYER': layer,
+                        'TARGET_FIELD': None,
                         'ACTION_ON_DUPLICATE': 0})  # No action
 
-        self.assertIsNone(res['OUTPUT'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])
         self.assertIsNone(res[UPDATED_COUNT])
         self.assertIsNone(res[SKIPPED_COUNT])
