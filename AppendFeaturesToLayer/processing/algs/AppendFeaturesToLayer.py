@@ -51,7 +51,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
     NO_ACTION_TEXT = "Just APPEND all features, no matter of duplicates"
     SKIP_FEATURE_TEXT = 'If duplicate is found, SKIP feature'
-    UPDATE_EXISTING_FEATURE_TEXT = 'If duplcate is found, UPDATE existing feature'
+    UPDATE_EXISTING_FEATURE_TEXT = 'If duplicate is found, UPDATE existing feature'
     NO_ACTION = 0
     SKIP_FEATURE = 1
     UPDATE_EXISTING_FEATURE = 2
@@ -75,7 +75,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         return QCoreApplication.translate("AppendFeaturesToLayer", "This algorithm copies features from a source layer into a target layer.\n\n"
                                           "Field mapping is handled automatically. Fields that are in both source and target layers are copied. Fields that are only found in source are not copied to target layer.\n\n"
                                           "Geometry conversion is done automatically, if required by the target layer. For instance, single-part geometries are converted to multi-part if target layer handles multi-geometries; polygons are converted to lines if target layer stores lines; among others.\n\n"
-                                          "This algorithm allows you to choose a field in source and target layers to compare and detect duplicates. It has 3 modes of operation: 1) APPEND feature, regardless of duplicates; 2) SKIP feature if duplicate is found; or UPDATE the feature in target layer with attributes from the feature in the source layer.")
+                                          "This algorithm allows you to choose a field in source and target layers to compare and detect duplicates. It has 3 modes of operation: 1) APPEND feature, regardless of duplicates; 2) SKIP feature if duplicate is found; or 3) UPDATE the feature in target layer with attributes from the feature in the source layer.")
 
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
