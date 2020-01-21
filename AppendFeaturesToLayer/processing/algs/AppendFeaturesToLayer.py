@@ -72,7 +72,10 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         super().__init__()
 
     def shortHelpString(self):
-        return QCoreApplication.translate("AppendFeaturesToLayer", "This algorithm copies features from a source layer into a target layer.")
+        return QCoreApplication.translate("AppendFeaturesToLayer", "This algorithm copies features from a source layer into a target layer.\n\n"
+                                          "Field mapping is handled automatically. Fields that are in both source and target layers are copied. Fields that are only found in source are not copied to target layer.\n\n"
+                                          "Geometry conversion is done automatically, if required by the target layer. For instance, single-part geometries are converted to multi-part if target layer handles multi-geometries; polygons are converted to lines if target layer stores lines; among others.\n\n"
+                                          "This algorithm allows you to choose a field in source and target layers to compare and detect duplicates. It has 3 modes of operation: 1) APPEND feature, regardless of duplicates; 2) SKIP feature if duplicate is found; or UPDATE the feature in target layer with attributes from the feature in the source layer.")
 
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,

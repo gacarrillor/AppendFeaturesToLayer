@@ -1,0 +1,170 @@
+<!DOCTYPE model>
+<Option type="Map">
+  <Option name="children" type="Map">
+    <Option name="etl_load:appendfeaturestolayer_1" type="Map">
+      <Option name="active" type="bool" value="true"/>
+      <Option name="alg_config"/>
+      <Option name="alg_id" type="QString" value="etl_load:appendfeaturestolayer"/>
+      <Option name="component_description" type="QString" value="Append features to layer"/>
+      <Option name="component_pos_x" type="double" value="1003"/>
+      <Option name="component_pos_y" type="double" value="550"/>
+      <Option name="dependencies"/>
+      <Option name="id" type="QString" value="etl_load:appendfeaturestolayer_1"/>
+      <Option name="outputs"/>
+      <Option name="outputs_collapsed" type="bool" value="true"/>
+      <Option name="parameters_collapsed" type="bool" value="true"/>
+      <Option name="params" type="Map">
+        <Option name="ACTION_ON_DUPLICATE" type="List">
+          <Option type="Map">
+            <Option name="source" type="int" value="2"/>
+            <Option name="static_value" type="int" value="2"/>
+          </Option>
+        </Option>
+        <Option name="SOURCE_FIELD" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="inputfield"/>
+            <Option name="source" type="int" value="0"/>
+          </Option>
+        </Option>
+        <Option name="SOURCE_LAYER" type="List">
+          <Option type="Map">
+            <Option name="child_id" type="QString" value="qgis:refactorfields_1"/>
+            <Option name="output_name" type="QString" value="OUTPUT"/>
+            <Option name="source" type="int" value="1"/>
+          </Option>
+        </Option>
+        <Option name="TARGET_FIELD" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="outputfield"/>
+            <Option name="source" type="int" value="0"/>
+          </Option>
+        </Option>
+        <Option name="TARGET_LAYER" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="output"/>
+            <Option name="source" type="int" value="0"/>
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+    <Option name="qgis:refactorfields_1" type="Map">
+      <Option name="active" type="bool" value="true"/>
+      <Option name="alg_config"/>
+      <Option name="alg_id" type="QString" value="qgis:refactorfields"/>
+      <Option name="component_description" type="QString" value="Refactor fields"/>
+      <Option name="component_pos_x" type="double" value="647"/>
+      <Option name="component_pos_y" type="double" value="416"/>
+      <Option name="dependencies"/>
+      <Option name="id" type="QString" value="qgis:refactorfields_1"/>
+      <Option name="outputs"/>
+      <Option name="outputs_collapsed" type="bool" value="true"/>
+      <Option name="parameters_collapsed" type="bool" value="true"/>
+      <Option name="params" type="Map">
+        <Option name="FIELDS_MAPPING" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="mapping"/>
+            <Option name="source" type="int" value="0"/>
+          </Option>
+        </Option>
+        <Option name="INPUT" type="List">
+          <Option type="Map">
+            <Option name="parameter_name" type="QString" value="INPUT"/>
+            <Option name="source" type="int" value="0"/>
+          </Option>
+        </Option>
+      </Option>
+    </Option>
+  </Option>
+  <Option name="help"/>
+  <Option name="modelVariables"/>
+  <Option name="model_group" type="QString" value="ETL_LOAD"/>
+  <Option name="model_name" type="QString" value="ETL basic model (Update)"/>
+  <Option name="parameterDefinitions" type="Map">
+    <Option name="INPUT" type="Map">
+      <Option name="data_types" type="List">
+        <Option type="int" value="5"/>
+      </Option>
+      <Option name="default" type="invalid"/>
+      <Option name="description" type="QString" value="INPUT"/>
+      <Option name="flags" type="int" value="0"/>
+      <Option name="metadata"/>
+      <Option name="name" type="QString" value="INPUT"/>
+      <Option name="parameter_type" type="QString" value="vector"/>
+    </Option>
+    <Option name="inputfield" type="Map">
+      <Option name="allow_multiple" type="bool" value="false"/>
+      <Option name="data_type" type="int" value="-1"/>
+      <Option name="default" type="invalid"/>
+      <Option name="description" type="QString" value="INPUT_FIELD"/>
+      <Option name="flags" type="int" value="0"/>
+      <Option name="metadata"/>
+      <Option name="name" type="QString" value="inputfield"/>
+      <Option name="parameter_type" type="QString" value="field"/>
+      <Option name="parent_layer" type="QString" value="INPUT"/>
+    </Option>
+    <Option name="mapping" type="Map">
+      <Option name="default" type="invalid"/>
+      <Option name="description" type="QString" value="mapping"/>
+      <Option name="flags" type="int" value="0"/>
+      <Option name="metadata" type="Map">
+        <Option name="widget_wrapper" type="QString" value="processing.algs.qgis.ui.FieldsMappingPanel.FieldsMappingWidgetWrapper"/>
+      </Option>
+      <Option name="name" type="QString" value="mapping"/>
+      <Option name="parameter_type" type="QString" value="fields_mapping"/>
+    </Option>
+    <Option name="output" type="Map">
+      <Option name="data_types" type="List">
+        <Option type="int" value="5"/>
+      </Option>
+      <Option name="default" type="invalid"/>
+      <Option name="description" type="QString" value="output"/>
+      <Option name="flags" type="int" value="0"/>
+      <Option name="metadata"/>
+      <Option name="name" type="QString" value="output"/>
+      <Option name="parameter_type" type="QString" value="vector"/>
+    </Option>
+    <Option name="outputfield" type="Map">
+      <Option name="allow_multiple" type="bool" value="false"/>
+      <Option name="data_type" type="int" value="-1"/>
+      <Option name="default" type="invalid"/>
+      <Option name="description" type="QString" value="OUTPUT_FIELD"/>
+      <Option name="flags" type="int" value="0"/>
+      <Option name="metadata"/>
+      <Option name="name" type="QString" value="outputfield"/>
+      <Option name="parameter_type" type="QString" value="field"/>
+      <Option name="parent_layer" type="QString" value="output"/>
+    </Option>
+  </Option>
+  <Option name="parameters" type="Map">
+    <Option name="INPUT" type="Map">
+      <Option name="component_description" type="QString" value="INPUT"/>
+      <Option name="component_pos_x" type="double" value="347"/>
+      <Option name="component_pos_y" type="double" value="237"/>
+      <Option name="name" type="QString" value="INPUT"/>
+    </Option>
+    <Option name="inputfield" type="Map">
+      <Option name="component_description" type="QString" value="inputfield"/>
+      <Option name="component_pos_x" type="double" value="741"/>
+      <Option name="component_pos_y" type="double" value="253"/>
+      <Option name="name" type="QString" value="inputfield"/>
+    </Option>
+    <Option name="mapping" type="Map">
+      <Option name="component_description" type="QString" value="mapping"/>
+      <Option name="component_pos_x" type="double" value="351"/>
+      <Option name="component_pos_y" type="double" value="389"/>
+      <Option name="name" type="QString" value="mapping"/>
+    </Option>
+    <Option name="output" type="Map">
+      <Option name="component_description" type="QString" value="output"/>
+      <Option name="component_pos_x" type="double" value="535"/>
+      <Option name="component_pos_y" type="double" value="665"/>
+      <Option name="name" type="QString" value="output"/>
+    </Option>
+    <Option name="outputfield" type="Map">
+      <Option name="component_description" type="QString" value="outputfield"/>
+      <Option name="component_pos_x" type="double" value="887"/>
+      <Option name="component_pos_y" type="double" value="761"/>
+      <Option name="name" type="QString" value="outputfield"/>
+    </Option>
+  </Option>
+</Option>
