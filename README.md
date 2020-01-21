@@ -12,6 +12,19 @@ This algorithm is based on the `Paste` tool that QGIS offers in its main user in
 
 Think about `Append Features to Layer` as a Copy & Paste algorithm, which extracts features from a source vector layer and pastes them into a target vector layer.
 
+**Fields and geometries**
+
+Field mapping is handled automatically. Fields that are in both source and target layers are copied. Fields that are only found in source are not copied to target layer.
+
+Geometry conversion is done automatically, if required by the target layer. For instance, single-part geometries are converted to multi-part if target layer handles multi-geometries; polygons are converted to lines if target layer stores lines; among others.
+
+**How the algorithm deals with duplicates**
+
+This algorithm allows you to choose a field in source and target layers to compare and detect duplicates. It has 3 modes of operation: 
+
+  1) APPEND feature, regardless of duplicates.
+  2) SKIP feature if duplicate is found.
+  3) UPDATE the feature in target layer with attributes from the feature in the source layer.
 
 
 Where to find the algorithm
@@ -22,16 +35,22 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
 
 ![New algorithm provider][1]
 
-Additionally, as an example, this plugin also installs a Processing model that uses `Refactor Fields` and `Append features to layer` algorithms. You can find the model under `Models --> ETL_LOAD --> ETL-basic-model`. This model deals with the temporary/intermediate vector layer that `Refactor Fields` creates and allows you to focus on your real target layer instead. Of course, your target layer should be editable.
+Additionally, as an example, this plugin also installs 2 Processing models that use `Refactor Fields` and `Append features to layer` algorithms. You can find the models under `Models --> ETL_LOAD`. The algorithms allow you to 1) APPEND all features from the source layer or 2) UPDATE duplicate features and append the rest.
 
-![ETL-basic-model][2]
+![ETL-basic-model-append][2]
 
-![ETL-basic-model_dialog][3]
+![ETL-basic-model_dialog_append][3]
 
-[1]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/newly_added_algorithm_and_model.png
-[2]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/model_etl_load.png
-[3]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/etl_basic_model.png
+![ETL-basic-model-update][4]
 
+![ETL-basic-model_dialog_update][5]
+
+
+[1]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/append.png
+[2]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/append_01.png
+[3]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/append_02.png
+[4]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_01.png
+[5]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_02.png
 
 Running Unit Tests Locally
 ----------------------
