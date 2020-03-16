@@ -4,46 +4,80 @@
 
 # Append Features to Layer
 
-Processing plugin-based provider for QGIS 3 that adds an algorithm for appending features to a vector layer.
 
-Such algorithm acts as the 'Load' in an ETL (Extract, Transform and Load) operation, allowing you to store data into your target layer instead of into temporary layers.
+QGIS v3 plugin that adds a new Processing algorithm to append features from a `source` vector layer to a `target` vector layer.
 
-This algorithm is based on the `Paste` tool that QGIS offers in its main user interface, enabling you to use it in your Processing workflows.
+###Use cases
 
-Think about `Append Features to Layer` as a Copy & Paste algorithm, which extracts features from a source vector layer and pastes them into a target vector layer.
+ 1. **Copy & Paste features**:
+ 
+    Think about `Append Features to Layer` as a Copy & Paste algorithm, which extracts features from a `source` vector layer and pastes them into a `target` vector layer.
+ 
+    In fact, the algorithm is based on the `Paste` tool that QGIS offers in its main user interface, enabling you to use it in your Processing workflows. 
+ 
+ 2. **ETL (Extract, Transform and Load)**: (See [some examples]()) 
+    
+    The `Append Features to Layer` algorithm acts as the 'Load' in an ETL operation. If you need to 'Transform' your features before using the 'Load', QGIS offers the `Refactor fields` algorithm. 
+    
+    Using both algorithms in a model, you can create complex ETL processes to migrate entire data sets from a data structure into another.   
+
+ 3. **Send the output of a Processing algorithm to an existing layer**:
+ 
+    Unlike conventional QGIS Processing algorithms (except by *in-place* ones), `Append Features to Layer` allows you to store data into an existing `target` layer instead of into temporary layers. 
+    
+    For instance, if you need to send the buffers of a point layer into an existing polygon layer, you can chain the Buffer and `Append Features to Layer` algorithms in the Processing modeler, so that the output from the buffer gets copied into your polygon layer.    
+
+ 4. **Update existing features in an existing (`target`) layer based on a `source` layer**.
+ 
+    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can update the existing feature attributes based on the new feature, instead of appending it. See the section [Updating features]() (below), for details.
+   
+
+###How does it work?
 
 **Fields and geometries**
 
-Field mapping is handled automatically. Fields that are in both source and target layers are copied. Fields that are only found in source are not copied to target layer.
+Field mapping between `source` and `target` layers is handled automatically. Fields that are in both layers are copied. Fields that are only found in `source` are not copied to `target` layer.
 
-Geometry conversion is done automatically, if required by the target layer. For instance, single-part geometries are converted to multi-part if target layer handles multi-geometries; polygons are converted to lines if target layer stores lines; among others.
+Geometry conversion is done on the fly, if required by the `target` layer. For instance, single-part geometries are converted to multi-part if `target` layer handles multi-geometries; polygons are converted to lines if `target` layer stores lines; among others.
 
 **How the algorithm deals with duplicates**
 
-This algorithm allows you to choose a field in source and target layers to compare and detect duplicates. It has 3 modes of operation: 
+This algorithm allows you to choose a field in `source` and `target` layers to compare and detect duplicates. It has 3 modes of operation: 
 
-  1) APPEND feature, regardless of duplicates.
-  2) SKIP feature if duplicate is found.
-  3) UPDATE the feature in target layer with attributes from the feature in the source layer.
+  1) APPEND new feature, regardless of duplicates.
+  2) SKIP new feature if duplicate is found.
+  3) UPDATE the feature in `target` layer, based on attributes from the feature in the `source` layer.
 
 
-Where to find the algorithm
----------------------------
+###Where to find the algorithm
+
 
 Once installed and activated, this plugin adds a new provider (`ETL_LOAD`) to QGIS Processing.
 You can find the `Append Features to Layer` algorithm in the Processing Toolbox, under `ETL_LOAD -> Vector table -> Append features to layer`.
 
 ![New algorithm provider][1]
 
-Additionally, as an example, this plugin also installs 2 Processing models that use `Refactor Fields` and `Append features to layer` algorithms. You can find the models under `Models --> ETL_LOAD`. The algorithms allow you to 1) APPEND all features from the source layer or 2) UPDATE duplicate features and append the rest.
+###Examples
 
-![ETL-basic-model-append][2]
+1. **Copy & Paste features**:
 
-![ETL-basic-model_dialog_append][3]
+2. **ETL (Extract, Transform and Load)**: 
 
-![ETL-basic-model-update][4]
+   This plugin also installs 2 Processing models that chain `Refactor Fields` and `Append features to layer` algorithms. You can find the models under `Models --> ETL_LOAD`. 
+   
+   The models allow you to 
+   
+   i) Transform and Load (APPEND) all features from the `source` layer, or
+   
+      ![ETL-basic-model-append][2]
 
-![ETL-basic-model_dialog_update][5]
+      ![ETL-basic-model_dialog_append][3]    
+   
+   ii) Transform and Load (UPDATE) all features from the `source`, updating those features that are duplicate.
+
+      ![ETL-basic-model-update][4]
+
+      ![ETL-basic-model_dialog_update][5]
 
 
 [1]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/append.png
@@ -52,7 +86,6 @@ Additionally, as an example, this plugin also installs 2 Processing models that 
 [4]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_01.png
 [5]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_02.png
 
-Running Unit Tests Locally
-----------------------
+###Running Unit Tests Locally
 
 `me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=latest -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
