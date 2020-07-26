@@ -7,7 +7,7 @@
 
 QGIS v3 plugin that adds a new Processing algorithm to append features from a `source` vector layer to a `target` vector layer.
 
-###Use cases
+### Use cases
 
  1. **Copy & Paste features**:
  
@@ -32,7 +32,7 @@ QGIS v3 plugin that adds a new Processing algorithm to append features from a `s
     The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can update the existing feature attributes based on the new feature, instead of appending it. See the section [Updating features]() (below), for details.
    
 
-###How does it work?
+### How does it work?
 
 **Fields and geometries**
 
@@ -49,7 +49,7 @@ This algorithm allows you to choose a field in `source` and `target` layers to c
   3) UPDATE the feature in `target` layer, based on attributes from the feature in the `source` layer.
 
 
-###Where to find the algorithm
+### Where to find the algorithm
 
 
 Once installed and activated, this plugin adds a new provider (`ETL_LOAD`) to QGIS Processing.
@@ -57,7 +57,7 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
 
 ![New algorithm provider][1]
 
-###Examples
+### Examples
 
 1. **Copy & Paste features**:
 
@@ -86,6 +86,6 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
 [4]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_01.png
 [5]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_02.png
 
-###Running Unit Tests Locally
+### Running Unit Tests Locally
 
 `me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=latest -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
