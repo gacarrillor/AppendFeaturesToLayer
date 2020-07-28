@@ -84,7 +84,7 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
 [2]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/append_01.png
 [3]: https://imgur.com/032tTlB.png
 [4]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_01.png
-[5]: https://imgur.com/undefined.png
+[5]: https://imgur.com/6P8iSuv.png
 
 ### Running Unit Tests Locally
 
