@@ -55,11 +55,11 @@ This algorithm allows you to choose a field in `source` and `target` layers to c
 Once installed and activated, this plugin adds a new provider (`ETL_LOAD`) to QGIS Processing.
 You can find the `Append Features to Layer` algorithm in the Processing Toolbox, under `ETL_LOAD -> Vector table -> Append features to layer`.
 
-![New algorithm provider][1]
+![Algorithm][1]
 
 ### Examples
 
-1. **Copy & Paste features**:
+1. **Copy & Paste features**
 
 2. **ETL (Extract, Transform and Load)**: 
 
@@ -80,11 +80,11 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
       ![ETL-basic-model_dialog_update][5]
 
 
-[1]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/append.png
+[1]: https://imgur.com/0xtH0kV.png
 [2]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/append_01.png
-[3]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/append_02.png
+[3]: https://imgur.com/032tTlB.png
 [4]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_01.png
-[5]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_02.png
+[5]: https://imgur.com/undefined.png
 
 ### Running Unit Tests Locally
 
