@@ -33,7 +33,7 @@ class AppendFeaturesToLayerPlugin:
         self.iface = iface
         self.provider = None
 
-    def initGui(self):
+    def initProcessing(self):
         # Add provider and models to QGIS
         self.provider = ETLLoadAlgorithmProvider()
         QgsApplication.processingRegistry().addProvider(self.provider)
@@ -42,6 +42,9 @@ class AppendFeaturesToLayerPlugin:
         else: # We need to wait until processing is initialized
             QgsApplication.processingRegistry().providerAdded.connect(self.add_processing_models)
 
+    def initGui(self):
+        self.initProcessing()
+            
     def unload(self):
         QgsApplication.processingRegistry().removeProvider(self.provider)
 
