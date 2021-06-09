@@ -139,10 +139,20 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
         if source_fields_parameter:
             source_field_unique_values = source_fields_parameter[0]
+            if source.fields().indexOf(source_field_unique_values) == -1:
+                feedback.reportError(
+                    "\nWARNING: '{field}' field not found in source layer! If you're using an ETL model, the '{field}' field must be included in the mapping.".format(field=source_field_unique_values))
+                return results
+
             source_field_type = source.fields().field(source_field_unique_values).type()
 
         if target_fields_parameter:
             target_field_unique_values = target_fields_parameter[0]
+            if target.fields().indexOf(target_field_unique_values) == -1:
+                feedback.reportError(
+                    "\nWARNING: '{field}' field not found in target layer! If you're using an ETL model, the '{field}' field must be included in the mapping.".format(field=target_field_unique_values))
+                return results
+
             target_field_type = target.fields().field(target_field_unique_values).type()
 
         if source_field_type != target_field_type:
