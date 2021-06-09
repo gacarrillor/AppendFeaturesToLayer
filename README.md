@@ -10,27 +10,27 @@ QGIS v3 plugin that adds a new Processing algorithm to append features from a `s
 ### Use cases
 
  1. **Copy & Paste features**:
- 
+
     Think about `Append Features to Layer` as a Copy & Paste algorithm, which extracts features from a `source` vector layer and pastes them into a `target` vector layer.
- 
+
     In fact, the algorithm is based on the `Paste` tool that QGIS offers in its main user interface, enabling you to use it in your Processing workflows. 
- 
- 2. **ETL (Extract, Transform and Load)**: (See [some examples]()) 
+
+ 2. **ETL (Extract, Transform and Load)**: (See [some examples](#examples))
     
     The `Append Features to Layer` algorithm acts as the 'Load' in an ETL operation. If you need to 'Transform' your features before using the 'Load', QGIS offers the `Refactor fields` algorithm. 
     
     Using both algorithms in a model, you can create complex ETL processes to migrate entire data sets from a data structure into another.   
 
  3. **Send the output of a Processing algorithm to an existing layer**:
- 
+
     Unlike conventional QGIS Processing algorithms (except by *in-place* ones), `Append Features to Layer` allows you to store data into an existing `target` layer instead of into temporary layers. 
     
     For instance, if you need to send the buffers of a point layer into an existing polygon layer, you can chain the Buffer and `Append Features to Layer` algorithms in the Processing modeler, so that the output from the buffer gets copied into your polygon layer.    
 
  4. **Update existing features in an existing (`target`) layer based on a `source` layer**.
- 
-    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can update the existing feature attributes based on the new feature, instead of appending it. See the section [Updating features]() (below), for details.
-   
+
+    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can update the existing feature geometry/attributes based on the new feature, instead of appending it. You can find more details below.
+
 
 ### How does it work?
 
@@ -88,4 +88,4 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
 
 ### Running Unit Tests Locally
 
-`me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=latest -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
+`me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=release-3_16 -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
