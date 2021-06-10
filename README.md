@@ -5,21 +5,21 @@
 # Append Features to Layer
 
 
-QGIS v3 plugin that adds a new Processing algorithm to append features from a `source` vector layer to a `target` vector layer.
+QGIS v3 plugin that adds a new Processing algorithm to append/update features from a `source` vector layer to an existing `target` vector layer.
 
 ### Use cases
 
  1. **Copy & Paste features**:
 
-    Think about `Append Features to Layer` as a Copy & Paste algorithm, which extracts features from a `source` vector layer and pastes them into a `target` vector layer.
+    Think about `Append Features to Layer` as a Copy & Paste algorithm, which extracts features from a `source` vector layer and pastes them into an existing `target` vector layer.
 
     In fact, the algorithm is based on the `Paste` tool that QGIS offers in its main user interface, enabling you to use it in your Processing workflows. 
 
- 2. **ETL (Extract, Transform and Load)**: (See [some examples](#examples))
+ 2. **ETL (Extract, Transform and Load)**: (See [example](#examples) number 2)
     
     The `Append Features to Layer` algorithm acts as the 'Load' in an ETL operation. If you need to 'Transform' your features before using the 'Load', QGIS offers the `Refactor fields` algorithm. 
     
-    Using both algorithms in a model, you can create complex ETL processes to migrate entire data sets from a data structure into another.   
+    Using both algorithms in a model, you can create complex ETL processes to migrate entire data sets from a data structure into another. Fortunately, you can find such a model after installing this plugin!
 
  3. **Send the output of a Processing algorithm to an existing layer**:
 
@@ -29,7 +29,7 @@ QGIS v3 plugin that adds a new Processing algorithm to append features from a `s
 
  4. **Update existing features in an existing (`target`) layer based on a `source` layer**.
 
-    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can update the existing feature geometry/attributes based on the new feature, instead of appending it. You can find more details below.
+    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can **update** the existing feature's geometry/attributes based on the new feature, instead of appending it. You can find more details below.
 
 
 ### How does it work?
