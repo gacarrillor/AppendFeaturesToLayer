@@ -7,6 +7,14 @@
 
 QGIS v3 plugin that adds a new Processing algorithm to append/update features from a `source` vector layer to an existing `target` vector layer.
 
+
+  [Use cases](#use-cases)<br>
+  [How does it work](#how-does-it-work)<br>
+  [Where to find the algorithm](#where-to-find-the-algorithm)<br>
+  [Examples](#examples)<br>
+  [Running Unit Tests Locally](#running-unit-tests-locally)
+
+
 ### Use cases
 
  1. **Copy & Paste features**:
