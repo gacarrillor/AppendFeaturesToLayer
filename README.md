@@ -12,7 +12,8 @@ QGIS v3 plugin that adds a new Processing algorithm to append/update features fr
   [How does it work](#how-does-it-work)<br>
   [Where to find the algorithm](#where-to-find-the-algorithm)<br>
   [Examples](#examples)<br>
-  [Running Unit Tests Locally](#running-unit-tests-locally)
+  [Running Unit Tests Locally](#running-unit-tests-locally)<br>
+  [Using in standalone scripts](#using-in-standalone-scripts)
 
 
 ### Use cases
@@ -97,3 +98,22 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
 ### Running Unit Tests Locally
 
 `me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=release-3_16 -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
+
+### Using in standalone scripts
+
+```python
+plugin_name = 'AppendFeaturesToLayer'
+user_profile_name = 'MyProfileName'
+sys.path.append(fr'{Path.home()}\AppData\Roaming\QGIS\QGIS3\profiles\{user_profile_name}\python\plugins')
+from AppendFeaturesToLayer.processing.etl_load_provider import ETLLoadAlgorithmProvider
+
+provider = ETLLoadAlgorithmProvider()
+qgis.core.QgsApplication.processingRegistry().addProvider(provider)
+
+result = processing.run("etl_load:appendfeaturestolayer",
+                        {'SOURCE_LAYER': source_layer,
+                         'SOURCE_FIELD': '',
+                         'TARGET_LAYER': target_layer,
+                         'TARGET_FIELD': '',
+                         'ACTION_ON_DUPLICATE': 0})
+```
