@@ -101,8 +101,8 @@ Chances are you'd like to run this plugin from a PyQGIS script that works out of
 
 ```python
 # Add the path to QGIS plugins so that you can import AppendFeaturesToLayer
-user_profile_name = 'MyProfileName'
-sys.path.append(fr'{Path.home()}\AppData\Roaming\QGIS\QGIS3\profiles\{user_profile_name}\python\plugins')
+# See paths in https://gis.stackexchange.com/questions/274311/274312#274312
+sys.path.append(path_to_qgis_plugins)
 
 from AppendFeaturesToLayer.processing.etl_load_provider import ETLLoadAlgorithmProvider
 
@@ -116,7 +116,9 @@ result = processing.run("etl_load:appendfeaturestolayer",
                          'SOURCE_FIELD': '',
                          'TARGET_LAYER': target_layer,
                          'TARGET_FIELD': '',
-                         'ACTION_ON_DUPLICATE': 0})  # NO_ACTION: 0, SKIP_FEATURE: 1, UPDATE_EXISTING_FEATURE: 2
+                         'ACTION_ON_DUPLICATE': 0})  # NO_ACTION: 0
+                                                     # SKIP_FEATURE: 1
+                                                     # UPDATE_EXISTING_FEATURE: 2
 ```
 
 ### Running Unit Tests Locally
