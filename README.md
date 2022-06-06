@@ -1,4 +1,3 @@
-[![License](https://img.shields.io/github/license/gacarrillor/AppendFeaturesToLayer.svg)](https://tldrlegal.com/license/gnu-general-public-license-v3-%28gpl-3%29)
 [![Build Status](https://api.travis-ci.org/gacarrillor/AppendFeaturesToLayer.svg?branch=master)](https://travis-ci.org/gacarrillor/AppendFeaturesToLayer)
 
 
@@ -7,13 +6,14 @@
 
 QGIS v3 plugin that adds a new Processing algorithm to append/update features from a `source` vector layer to an existing `target` vector layer.
 
+**License**: This plugin is distributed under the [GNU GPL v3 license](https://github.com/gacarrillor/AppendFeaturesToLayer/blob/master/AppendFeaturesToLayer/LICENSE).
 
   [Use cases](#use-cases)<br>
   [How does it work](#how-does-it-work)<br>
   [Where to find the algorithm](#where-to-find-the-algorithm)<br>
   [Examples](#examples)<br>
-  [Running Unit Tests Locally](#running-unit-tests-locally)<br>
-  [Using in standalone scripts](#using-in-standalone-scripts)
+  [Using Append Features to Layer in standalone PyQGIS scripts](#using-append-features-to-layer-in-standalone-pyqgis-scripts)<br>
+  [Running Unit Tests Locally](#running-unit-tests-locally)
 
 
 ### Use cases
@@ -95,25 +95,30 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
 [4]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_01.png
 [5]: https://imgur.com/6P8iSuv.png
 
-### Running Unit Tests Locally
+### Using Append Features to Layer in standalone PyQGIS scripts
 
-`me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=release-3_16 -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
-
-### Using in standalone scripts
+Chances are you'd like to run this plugin from a PyQGIS script that works out of a QGIS GUI session. For that, take "[Using QGIS Processing algorithms from PyQGIS standalone scripts](https://gis.stackexchange.com/questions/279874/using-qgis-processing-algorithms-from-pyqgis-standalone-scripts-outside-of-gui)" into account, as well as the following code snippet.
 
 ```python
-plugin_name = 'AppendFeaturesToLayer'
+# Add the path to QGIS plugins so that you can import AppendFeaturesToLayer
 user_profile_name = 'MyProfileName'
 sys.path.append(fr'{Path.home()}\AppData\Roaming\QGIS\QGIS3\profiles\{user_profile_name}\python\plugins')
+
 from AppendFeaturesToLayer.processing.etl_load_provider import ETLLoadAlgorithmProvider
 
+# Register the processing provider
 provider = ETLLoadAlgorithmProvider()
 qgis.core.QgsApplication.processingRegistry().addProvider(provider)
 
+# Finally, enjoy!
 result = processing.run("etl_load:appendfeaturestolayer",
                         {'SOURCE_LAYER': source_layer,
                          'SOURCE_FIELD': '',
                          'TARGET_LAYER': target_layer,
                          'TARGET_FIELD': '',
-                         'ACTION_ON_DUPLICATE': 0})
+                         'ACTION_ON_DUPLICATE': 0})  # NO_ACTION: 0, SKIP_FEATURE: 1, UPDATE_EXISTING_FEATURE: 2
 ```
+
+### Running Unit Tests Locally
+
+`me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=release-3_16 -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
