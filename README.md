@@ -13,6 +13,7 @@ QGIS v3 plugin that adds a new Processing algorithm to append/update features fr
   [Where to find the algorithm](#where-to-find-the-algorithm)<br>
   [Examples](#examples)<br>
   [Using Append Features to Layer in standalone PyQGIS scripts](#using-append-features-to-layer-in-standalone-pyqgis-scripts)<br>
+  [Using Append Features to Layer via QGIS Process](#using-append-features-to-layer-via-qgis-process)<br>
   [Running Unit Tests Locally](#running-unit-tests-locally)
 
 
@@ -120,6 +121,17 @@ result = processing.run("etl_load:appendfeaturestolayer",
                                                      # SKIP_FEATURE: 1
                                                      # UPDATE_EXISTING_FEATURE: 2
 ```
+
+### Using Append Features to Layer via QGIS Process
+
+If you'd like to run the plugin without GUI, but don't want to deal with PyQGIS scripts, you can use QGIS Process. You run QGIS Process from the operating system's terminal, in this way:
+
+```$ qgis_process run "etl_load:appendfeaturestolayer" -- SOURCE_LAYER=/tmp/source.shp TARGET_LAYER=/tmp/target.shp ACTION_ON_DUPLICATE=0```
+
+Where `NO_ACTION`: 0, `SKIP_FEATURE`: 1, `UPDATE_EXISTING_FEATURE`: 2
+
+Make sure the plugin can be found in your QGIS plugins folder, that is, that you have installed the plugin in your QGIS.
+
 
 ### Running Unit Tests Locally
 
