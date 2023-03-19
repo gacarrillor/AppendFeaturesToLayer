@@ -15,6 +15,7 @@ from tests.utils import (CommonTests,
 
 start_app()
 
+
 class TestTableTable(unittest.TestCase):
 
     @classmethod
@@ -147,7 +148,7 @@ class TestTableTable(unittest.TestCase):
         output_path = layer.source().split('|')[0]
 
         # Let's overwrite the target feature to have a float as string
-        layer.dataProvider().changeAttributeValues({1: {1: "3.1416"}})  # name --> "3.1416"
+        layer.dataProvider().changeAttributeValues({next(layer.getFeatures()).id(): {1: "3.1416"}})  # name --> "3.1416"
 
         check_list_values = [f['name'] for f in layer.getFeatures()]
         self.assertEqual(len(check_list_values), 1)
@@ -215,7 +216,7 @@ class TestTableTable(unittest.TestCase):
         output_path = layer.source().split('|')[0]
 
         # Let's overwrite the target feature to have a float as string
-        layer.dataProvider().changeAttributeValues({1: {1: "3.1416"}})  # name --> "3.1416"
+        layer.dataProvider().changeAttributeValues({next(layer.getFeatures()).id(): {1: "3.1416"}})  # name --> "3.1416"
 
         check_list_values = [f['name'] for f in layer.getFeatures()]
         self.assertEqual(len(check_list_values), 1)

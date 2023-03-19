@@ -1,4 +1,3 @@
-#-*- coding: utf-8 -*-
 """
 /***************************************************************************
                            Append Features to Layer
@@ -75,7 +74,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         return QCoreApplication.translate("AppendFeaturesToLayer", "This algorithm copies features from a source layer into a target layer.\n\n"
                                           "Field mapping is handled automatically. Fields that are in both source and target layers are copied. Fields that are only found in source are not copied to target layer.\n\n"
                                           "Geometry conversion is done automatically, if required by the target layer. For instance, single-part geometries are converted to multi-part if target layer handles multi-geometries; polygons are converted to lines if target layer stores lines; among others.\n\n"
-                                          "This algorithm allows you to choose a field in source and target layers to compare and detect duplicates. It has 3 modes of operation: 1) APPEND feature, regardless of duplicates; 2) SKIP feature if duplicate is found; or 3) UPDATE the feature in target layer with attributes from the feature in the source layer.")
+                                          "This algorithm allows you to choose a field in source and target layers to compare and detect duplicates. It has 3 modes of operation: 1) APPEND feature, regardless of duplicates; 2) SKIP feature if duplicate is found; or 3) UPDATE the feature in target layer with attributes (including geometry) from the feature in the source layer.")
 
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
@@ -187,6 +186,8 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         mapping = dict()
         for target_idx in target.fields().allAttributesList():
             target_field = target.fields().field(target_idx)
+            if target.dataProvider().storageType() == 'GPKG' and target_field.name() == 'fid':
+                continue  # We won't be able to update a GPKG FID, so skip it.
             source_idx = source.fields().indexOf(target_field.name())
             if source_idx != -1:
                 mapping[target_idx] = source_idx
@@ -240,7 +241,8 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
             geom = QgsGeometry()
 
-            if in_feature.hasGeometry() and target.isSpatial():
+            if QgsWkbTypes.geometryType(
+                    source.wkbType()) != QgsWkbTypes.NullGeometry and in_feature.hasGeometry() and target.isSpatial():
                 # Convert geometry to match destination layer
                 # Adapted from QGIS qgisapp.cpp, pasteFromClipboard()
                 geom = in_feature.geometry()
@@ -260,7 +262,8 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 for t_f in target.getFeatures(target_value_dict[duplicate_target_value]):
                     duplicate_features_set.add(t_f.id())
                     updated_features[t_f.id()] = attrs
-                    if target.isSpatial():
+                    if QgsWkbTypes.geometryType(source.wkbType()) != QgsWkbTypes.NullGeometry and target.isSpatial():
+                        # Only overwrite geometry if both source and target layers are spatial
                         updated_geometries[t_f.id()] = geom
             else:  # Append
                 new_feature = QgsVectorLayerUtils().createFeature(target, geom, attrs)
@@ -321,7 +324,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
         if not new_features:
             feedback.pushInfo("\nFINISHED WITHOUT APPENDED FEATURES: There were no features to append to '{}'.".format(
-                target.name()
+                target.name() if target.name() else target.source()
             ))
         else:
             if res_add_features:
