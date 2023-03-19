@@ -56,8 +56,12 @@ This algorithm allows you to choose a field in `source` and `target` layers to c
 
   1) APPEND new feature, regardless of duplicates.
   2) SKIP new feature if duplicate is found.
-  3) UPDATE the feature in `target` layer, based on attributes from the feature in the `source` layer.
+  3) UPDATE the feature in `target` layer with attributes (including geometry) from the feature in the `source` layer.
 
+**Note on geometry updates**
+
+Mode UPDATE:
+  + If target layer has geometries but input layer does not, then only attributes will be updated when a duplicate feature is found, i.e., the geometry in target layer will remain untouched.
 
 ### Where to find the algorithm
 
@@ -135,4 +139,4 @@ Make sure the plugin can be found in your QGIS plugins folder, that is, that you
 
 ### Running Unit Tests Locally
 
-`me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=release-3_16 -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
+`me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=latest -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
