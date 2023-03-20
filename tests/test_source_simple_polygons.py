@@ -1,19 +1,13 @@
 import nose2
 
-from qgis.core import (QgsApplication,
-                       QgsVectorLayer,
-                       QgsProcessingFeatureSourceDefinition,
-                       QgsProject,
-                       QgsFeature)
 from qgis.testing import unittest, start_app
 from qgis.testing.mocked import get_iface
-
-import processing
 
 from tests.utils import (CommonTests,
                          APPENDED_COUNT)
 
 start_app()
+
 
 class TestSimplePolySimplePoly(unittest.TestCase):
 
@@ -95,7 +89,6 @@ class TestSimplePolySimpleLine(unittest.TestCase):
         print('INFO: Tear down simple_pol-simple_lin')
         self.plugin.unload()
 
+
 if __name__ == '__main__':
     nose2.main()
-
-

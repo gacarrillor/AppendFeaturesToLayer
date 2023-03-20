@@ -243,7 +243,6 @@ class TestTableTable(unittest.TestCase):
         print('INFO: Tear down test_table_table')
         self.plugin.unload()
 
+
 if __name__ == '__main__':
     nose2.main()
-
-

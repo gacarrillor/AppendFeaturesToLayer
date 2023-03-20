@@ -6,6 +6,7 @@ from qgis.testing.mocked import get_iface
 
 start_app()
 
+
 class TestPluginLoad(unittest.TestCase):
 
     @classmethod
@@ -24,6 +25,7 @@ class TestPluginLoad(unittest.TestCase):
     def tearDownClass(self):
         print('INFO: Tear down test_plugin_load')
         self.plugin.unload()
+
 
 if __name__ == '__main__':
     nose2.main()
