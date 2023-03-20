@@ -1,4 +1,3 @@
-#-*- coding: utf-8 -*-
 """
 /***************************************************************************
                            Append Features to Layer
@@ -25,7 +24,6 @@ from qgis.core import QgsApplication, QgsProcessingModelAlgorithm, Qgis
 from processing.modeler.ModelerUtils import ModelerUtils
 from .processing.etl_load_provider import ETLLoadAlgorithmProvider
 
-#from .resources_rc import *
 
 class AppendFeaturesToLayerPlugin:
 

@@ -20,6 +20,7 @@ from qgis.core import QgsProcessingProvider
 from processing.core.ProcessingConfig import Setting, ProcessingConfig
 from AppendFeaturesToLayer.processing.algs.AppendFeaturesToLayer import AppendFeaturesToLayer
 
+
 class ETLLoadAlgorithmProvider(QgsProcessingProvider):
 
     def __init__(self):
