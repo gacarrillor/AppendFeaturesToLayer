@@ -306,7 +306,6 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             ))
             return results
 
-
         if action_on_duplicate == self.SKIP_FEATURE:
             feedback.pushInfo("\nSKIPPED FEATURES: {} duplicate features were skipped while copying features to '{}'!".format(
                 skipped_features_count,

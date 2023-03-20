@@ -17,6 +17,7 @@ from tests.utils import (get_test_file_copy_path,
 
 start_app()
 
+
 class TestParameterErrors(unittest.TestCase):
 
     @classmethod
@@ -116,7 +117,6 @@ class TestParameterErrors(unittest.TestCase):
         print('INFO: Tear down test_parameter_errors')
         self.plugin.unload()
 
+
 if __name__ == '__main__':
     nose2.main()
-
-
