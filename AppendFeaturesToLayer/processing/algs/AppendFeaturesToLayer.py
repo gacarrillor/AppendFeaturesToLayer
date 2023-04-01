@@ -185,9 +185,14 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         # Define a mapping between source and target layer
         mapping = dict()
         for target_idx in target.fields().allAttributesList():
+            if target_idx in target.primaryKeyAttributes():
+                continue  # We won't be able to update PKs, so skip it
+
             target_field = target.fields().field(target_idx)
+
             if target.dataProvider().storageType() == 'GPKG' and target_field.name() == 'fid':
                 continue  # We won't be able to update a GPKG FID, so skip it.
+
             source_idx = source.fields().indexOf(target_field.name())
             if source_idx != -1:
                 mapping[target_idx] = source_idx
