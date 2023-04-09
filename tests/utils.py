@@ -28,9 +28,11 @@ from qgis.testing.mocked import get_iface
 #     iface.rewrite_method = rewrite_method
 #     return iface
 
+
 def get_test_path(path):
     basepath = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(basepath, "resources", path)
+
 
 def get_test_file_copy_path(path):
     src_path = get_test_path(path)
@@ -39,6 +41,7 @@ def get_test_file_copy_path(path):
     print("-->", src_path, dst_path)
     copyfile(src_path, dst_path)
     return dst_path
+
 
 def import_processing():
     global iface
