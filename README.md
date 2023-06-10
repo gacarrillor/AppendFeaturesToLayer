@@ -39,7 +39,7 @@ QGIS v3 plugin that adds a new Processing algorithm to append/update features fr
 
  4. **Update existing features in an existing (`target`) layer based on a `source` layer**.
 
-    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can **update** the existing feature's geometry/attributes based on the new feature, instead of appending it. You can find more details below.
+    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can **update** the existing feature's geometry/attributes based on the new feature, instead of appending it. In other words, the algorithm performs an **Upsert** (Update or Insert a feature). You can find more details below.
 
 
 ### How does it work?
