@@ -1,6 +1,3 @@
-[![Build Status](https://api.travis-ci.org/gacarrillor/AppendFeaturesToLayer.svg?branch=master)](https://travis-ci.org/gacarrillor/AppendFeaturesToLayer)
-
-
 # Append Features to Layer
 
 
