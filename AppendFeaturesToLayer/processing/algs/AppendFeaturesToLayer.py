@@ -170,9 +170,17 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             feedback.reportError("\nWARNING: The target layer does not support appending features to it! Choose another target layer.")
             return results
 
-        if action_on_duplicate == self.UPDATE_EXISTING_FEATURE and not(caps & QgsVectorDataProvider.ChangeAttributeValues and caps & QgsVectorDataProvider.ChangeGeometries):
-            feedback.reportError("\nWARNING: The target layer does not support updating its features! Choose another action for duplicate features or choose another target layer.")
-            return results
+        if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
+            if target.isSpatial() and not (
+                    caps & QgsVectorDataProvider.ChangeAttributeValues and caps & QgsVectorDataProvider.ChangeGeometries):
+                feedback.reportError(
+                    "\nWARNING: The target layer does not support updating its features (either attributes or geometries)! Choose another action for duplicate features or choose another target layer.")
+                return results
+
+            if not target.isSpatial() and not (caps & QgsVectorDataProvider.ChangeAttributeValues):
+                feedback.reportError(
+                    "\nWARNING: The target layer does not support updating its features! Choose another action for duplicate features or choose another target layer.")
+                return results
 
         editable_before = False
         if target.isEditable():
