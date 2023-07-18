@@ -2,7 +2,7 @@
 name=Append Features to Layer
 description=Processing plugin-based provider that adds an algorithm for appending/updating features to a vector layer
 about=Algorithm to run a 'Load' in an ETL operation, allowing you to append or update features in a vector layer
-version=1.4.0
+version=1.4.1-dev
 qgisMinimumVersion=2.99
 qgisMaximumVersion=3.99
 category=Processing
