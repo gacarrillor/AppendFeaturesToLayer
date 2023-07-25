@@ -138,4 +138,16 @@ Make sure the plugin can be found in your QGIS plugins folder, that is, that you
 
 ### Running Unit Tests Locally
 
-`me@my-pc:/path/to/AppendFeaturesToLayer$ docker build --build-arg QGIS_TEST_VERSION=latest -t append .; docker run --rm append bash /usr/src/run-docker-tests.sh`
+First, you need to set 2 environment variables:
+
+    export GITHUB_WORKSPACE=/path/to/AppendFeaturesToLayer/
+    export QGIS_TEST_VERSION="final-3_28_9"
+
+After that, you could run unit tests locally with this command:
+
+    docker-compose -f .docker/docker-compose.yml run --rm qgis
+
+You could rebuild the Docker image in this way:
+
+    docker-compose -f .docker/docker-compose.yml down --rmi local && docker-compose -f .docker/docker-compose.yml build
+
