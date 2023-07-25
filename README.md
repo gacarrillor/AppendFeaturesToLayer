@@ -1,3 +1,5 @@
+![Unit tests](https://github.com/gacarrillor/AppendFeaturesToLayer/actions/workflows/main.yml/badge.svg)
+
 # Append Features to Layer
 
 
