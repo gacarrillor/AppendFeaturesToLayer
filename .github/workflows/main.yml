@@ -14,10 +14,10 @@ on:
 jobs:
   # Run unit tests
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        qgis_version: [final-3_28_1]  # We could eventually add more, e.g., latest
+        qgis_version: [final-3_28_9]  # We could eventually add more, e.g., latest
     env:
       QGIS_TEST_VERSION: ${{ matrix.qgis_version }}
     steps:
