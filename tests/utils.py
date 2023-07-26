@@ -1,4 +1,5 @@
 import os
+import psycopg2
 import tempfile
 import unittest
 from shutil import copyfile
@@ -7,7 +8,8 @@ from qgis.core import (QgsApplication,
                        QgsVectorLayer,
                        QgsProject,
                        QgsProcessingFeatureSourceDefinition,
-                       QgsFeature)
+                       QgsFeature,
+                       QgsDataSourceUri)
 from qgis.analysis import QgsNativeAlgorithms
 import qgis.utils
 
@@ -54,6 +56,53 @@ def import_processing():
         from processing.core.Processing import Processing
         Processing.initialize()
         QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
+
+
+def get_pg_connection_uri(dict_conn, level=1):
+    uri = []
+    uri += ['host={}'.format(dict_conn['host'])]
+    uri += ['port={}'.format(dict_conn['port'])]
+    if dict_conn['username']:
+        uri += ['user={}'.format(dict_conn['username'])]
+    if dict_conn['password']:
+        uri += ['password={}'.format(dict_conn['password'])]
+    if level == 1 and dict_conn['database']:
+        uri += ['dbname={}'.format(dict_conn['database'])]
+    else:
+        # It is necessary to define the database name for listing databases
+        # PostgreSQL uses the db 'postgres' by default and it cannot be deleted, so we use it as last resort
+        uri += ["dbname={}".format('postgres')]
+
+    return ' '.join(uri)
+
+
+def get_pg_conn(db='db1'):
+    dict_conn = {'host': 'postgres',
+                 'port': 5432,
+                 'username': 'user1',
+                 'password': 'pass1',
+                 'database': db}
+    uri = get_pg_connection_uri(dict_conn)
+    conn = None
+    try:
+        conn = psycopg2.connect(uri)
+    except (psycopg2.OperationalError, psycopg2.ProgrammingError) as e:
+        print("ERROR: Could not open PG DB connection! Details: {}".format(e))
+
+    return conn
+
+
+def get_qgis_pg_layer(db='db1', table='target_table'):
+    uri = QgsDataSourceUri()
+
+    # set host name, port, database name, username and password
+    uri.setConnection("postgres", "5432", db, "user1", "pass1")
+
+    # set database schema, table name, geometry column and optionally
+    # subset (WHERE clause)
+    uri.setDataSource("public", table, None, aKeyColumn="id")
+
+    return QgsVectorLayer(uri.uri(), table, "postgres")
 
 
 class CommonTests(unittest.TestCase):
