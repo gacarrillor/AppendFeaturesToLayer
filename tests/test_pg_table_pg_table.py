@@ -13,6 +13,7 @@ import processing
 from tests.utils import (CommonTests,
                          get_pg_conn,
                          get_qgis_pg_layer,
+                         get_test_file_copy_path,
                          APPENDED_COUNT,
                          UPDATED_COUNT,
                          SKIPPED_COUNT)
@@ -36,28 +37,28 @@ class TestPGTablePGTable(unittest.TestCase):
 
         if conn:
             cur = conn.cursor()
-            cur.execute('CREATE TABLE target_table(id integer NOT NULL, name text, real_value real, date_value timestamp, exra_value text);')
+            cur.execute('CREATE TABLE target_table(id serial NOT NULL, name text, real_value real, date_value timestamp, exra_value text);')
+            cur.execute('ALTER TABLE target_table ADD CONSTRAINT pk_target_table PRIMARY KEY (id);')
             cur.close()
             conn.commit()
 
         pg_layer = get_qgis_pg_layer()
         self.assertTrue(pg_layer.isValid())
         self.assertEqual(pg_layer.featureCount(), 0)
-        # res = self.common._test_copy_all('source_table', 'target_table')
-        # layer = res['TARGET_LAYER']
-        # self.assertEqual(layer.featureCount(), 2)
-        # self.assertEqual(res[APPENDED_COUNT], 2)
 
-    def _test_copy_all(self, input_layer_name, output_layer_name, output_path=None):
-        print("### ", input_layer_name, output_layer_name)
+        res = self._test_copy_all('source_table', 'target_table')
+        layer = res['TARGET_LAYER']
+        self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
 
-        if output_path is None:
-            output_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
+    def _test_copy_all(self, input_layer_name, output_layer_name, input_path=None):
+        if input_path is None:
+            input_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
-        output = QgsVectorLayer("{}|layername={}".format(output_path, output_layer_name), "", "ogr")
+        output = get_qgis_pg_layer('db1', output_layer_name)
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'SOURCE_LAYER': "{}|layername={}".format(output_path, input_layer_name),
+                             {'SOURCE_LAYER': "{}|layername={}".format(input_path, input_layer_name),
                               'SOURCE_FIELD': None,
                               'TARGET_LAYER': output,
                               'TARGET_FIELD': None,
