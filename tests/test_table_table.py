@@ -11,7 +11,10 @@ from qgis.testing.mocked import get_iface
 import processing
 
 from tests.utils import (CommonTests,
-                         APPENDED_COUNT, UPDATED_COUNT, SKIPPED_COUNT)
+                         get_qgis_gpkg_layer,
+                         APPENDED_COUNT,
+                         UPDATED_COUNT,
+                         SKIPPED_COUNT)
 
 start_app()
 
@@ -28,7 +31,8 @@ class TestTableTable(unittest.TestCase):
 
     def test_copy_all(self):
         print('\nINFO: Validating table-table copy&paste all...')
-        res = self.common._test_copy_all('source_table', 'target_table')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        res = self.common._test_copy_all('source_table', output_layer, layer_path)
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
@@ -60,10 +64,12 @@ class TestTableTable(unittest.TestCase):
     def test_skip_update_1_m(self):
         print('\nINFO: Validating table-table skip/update 1:m...')
         # Let's copy twice the same 2 features to end up with 1:m (twice)
-        res = self.common._test_copy_all('source_table', 'target_table')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        res = self.common._test_copy_all('source_table', output_layer, layer_path)
         layer = res['TARGET_LAYER']
         output_path = layer.source().split('|')[0]
-        res = self.common._test_copy_all('source_table', 'target_table', output_path)
+
+        res = self.common._test_copy_all('source_table', output_layer, layer_path)
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 4)
         self.assertEqual(res[APPENDED_COUNT], 2)
@@ -96,8 +102,8 @@ class TestTableTable(unittest.TestCase):
 
     def test_skip_update_m_1(self):
         print('\nINFO: Validating table-table skip/update m:1...')
-
-        res = self.common._test_copy_all('source_table', 'target_table')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        res = self.common._test_copy_all('source_table', output_layer, layer_path)
         layer = res['TARGET_LAYER']
         output_path = layer.source().split('|')[0]
 

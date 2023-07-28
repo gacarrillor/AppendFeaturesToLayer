@@ -4,6 +4,7 @@ from qgis.testing import unittest, start_app
 from qgis.testing.mocked import get_iface
 
 from tests.utils import (CommonTests,
+                         get_qgis_gpkg_layer,
                          APPENDED_COUNT)
 
 start_app()
@@ -21,7 +22,8 @@ class TestSimplePolySimplePoly(unittest.TestCase):
 
     def test_copy_all(self):
         print('\nINFO: Validating simple_pol-simple_pol copy&paste all...')
-        res = self.common._test_copy_all('source_simple_polygons', 'target_simple_polygons')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_simple_polygons')
+        res = self.common._test_copy_all('source_simple_polygons', output_layer, layer_path)
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res['APPENDED_COUNT'], 2)
@@ -68,7 +70,8 @@ class TestSimplePolySimpleLine(unittest.TestCase):
 
     def test_copy_all(self):
         print('\nINFO: Validating simple_pol-simple_lin copy&paste all...')
-        res = self.common._test_copy_all('source_simple_polygons', 'target_simple_lines')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_simple_lines')
+        res = self.common._test_copy_all('source_simple_polygons', output_layer, layer_path)
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 1)
 
