@@ -30,6 +30,8 @@ class TestPGTablePGTable(unittest.TestCase):
         self.plugin = AppendFeaturesToLayerPlugin(get_iface)
         self.plugin.initGui()
 
+        self.common = CommonTests()
+
     def test_copy_all(self):
         print('\nINFO: Validating table-table copy&paste all...')
         conn = get_pg_conn()
@@ -46,28 +48,10 @@ class TestPGTablePGTable(unittest.TestCase):
         self.assertTrue(pg_layer.isValid())
         self.assertEqual(pg_layer.featureCount(), 0)
 
-        res = self._test_copy_all('source_table', 'target_table')
+        res = self.common._test_copy_all('source_table', get_qgis_pg_layer('db1', 'target_table'))
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
-
-    def _test_copy_all(self, input_layer_name, output_layer_name, input_path=None):
-        if input_path is None:
-            input_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
-
-        output = get_qgis_pg_layer('db1', output_layer_name)
-
-        res = processing.run("etl_load:appendfeaturestolayer",
-                             {'SOURCE_LAYER': "{}|layername={}".format(input_path, input_layer_name),
-                              'SOURCE_FIELD': None,
-                              'TARGET_LAYER': output,
-                              'TARGET_FIELD': None,
-                              'ACTION_ON_DUPLICATE': 0})  # No action
-
-        self.assertTrue(output.isValid())
-        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
-        self.assertIsNone(res[SKIPPED_COUNT])
-        return res
 
     @classmethod
     def tearDownClass(self):

@@ -105,25 +105,29 @@ def get_qgis_pg_layer(db='db1', table='target_table'):
     return QgsVectorLayer(uri.uri(), table, "postgres")
 
 
+def get_qgis_gpkg_layer(output_layer_name, layer_path=None):
+    if layer_path is None:
+        layer_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
+
+    return QgsVectorLayer("{}|layername={}".format(layer_path, output_layer_name), "", "ogr"), layer_path
+
+
 class CommonTests(unittest.TestCase):
     """ Utility functions """
 
-    def _test_copy_all(self, input_layer_name, output_layer_name, output_path=None):
-        print("### ", input_layer_name, output_layer_name)
-
-        if output_path is None:
-            output_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
-
-        output = QgsVectorLayer("{}|layername={}".format(output_path, output_layer_name), "", "ogr")
+    def _test_copy_all(self, input_layer_name, output_layer, input_layer_path=None):
+        if input_layer_path is None:
+            # Note that when input and output are in the same DB, input_layer_path should be passed as arg
+            input_layer_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
         res = processing.run("etl_load:appendfeaturestolayer",
-                             {'SOURCE_LAYER': "{}|layername={}".format(output_path, input_layer_name),
+                             {'SOURCE_LAYER': "{}|layername={}".format(input_layer_path, input_layer_name),
                               'SOURCE_FIELD': None,
-                              'TARGET_LAYER': output,
+                              'TARGET_LAYER': output_layer,
                               'TARGET_FIELD': None,
                               'ACTION_ON_DUPLICATE': 0})  # No action
 
-        self.assertTrue(output.isValid())
+        self.assertTrue(output_layer.isValid())
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
         return res
