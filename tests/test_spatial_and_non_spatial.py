@@ -13,7 +13,9 @@ import processing
 
 from tests.utils import (APPENDED_COUNT,
                          SKIPPED_COUNT,
-                         UPDATED_COUNT, CommonTests)
+                         UPDATED_COUNT,
+                         CommonTests,
+                         get_qgis_gpkg_layer)
 
 start_app()
 
@@ -31,7 +33,8 @@ class TestSpatialAndNonSpatialUpdates(unittest.TestCase):
     def test_update_spatial_features_from_non_spatial_layer(self):
         print('\nINFO: Validating geometries are not updated if source layer is non-spatial...')
 
-        res = self.common._test_copy_selected('source_multi_polygons', 'target_multi_polygons')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_multi_polygons')
+        res = self.common._test_copy_selected('source_multi_polygons', output_layer, layer_path)
         layer = res['TARGET_LAYER']
         original_geoms = [f.geometry().asWkt() for f in layer.getFeatures()]
 

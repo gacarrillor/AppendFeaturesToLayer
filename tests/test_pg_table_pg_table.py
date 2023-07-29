@@ -14,6 +14,8 @@ from tests.utils import (CommonTests,
                          get_pg_conn,
                          get_qgis_pg_layer,
                          get_test_file_copy_path,
+                         prepare_pg_db_1,
+                         PG_BD_1,
                          APPENDED_COUNT,
                          UPDATED_COUNT,
                          SKIPPED_COUNT)
@@ -32,26 +34,34 @@ class TestPGTablePGTable(unittest.TestCase):
 
         self.common = CommonTests()
 
+        prepare_pg_db_1()
+
     def test_copy_all(self):
-        print('\nINFO: Validating table-table copy&paste all...')
-        conn = get_pg_conn()
-        self.assertIsNotNone(conn, "PG connection to db1 shouldn't be None!")
-
-        if conn:
-            cur = conn.cursor()
-            cur.execute('CREATE TABLE target_table(id serial NOT NULL, name text, real_value real, date_value timestamp, exra_value text);')
-            cur.execute('ALTER TABLE target_table ADD CONSTRAINT pk_target_table PRIMARY KEY (id);')
-            cur.close()
-            conn.commit()
-
-        pg_layer = get_qgis_pg_layer()
+        print('\nINFO: Validating pg table - pg table copy&paste all...')
+        pg_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
         self.assertTrue(pg_layer.isValid())
         self.assertEqual(pg_layer.featureCount(), 0)
 
-        res = self.common._test_copy_all('source_table', get_qgis_pg_layer('db1', 'target_table'))
+        res = self.common._test_copy_all('source_table', pg_layer)
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
+
+    def test_copy_selected(self):
+        print('\nINFO: Validating pg table - pg table copy&paste selected...')
+        res = self.common._test_copy_selected('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
+        layer = res['TARGET_LAYER']
+
+        self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+
+    @staticmethod
+    def tearDown():
+        conn = get_pg_conn()
+        cur = conn.cursor()
+        cur.execute("TRUNCATE target_table;")
+        cur.close()
+        conn.commit()
 
     @classmethod
     def tearDownClass(self):
