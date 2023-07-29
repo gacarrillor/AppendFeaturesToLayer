@@ -15,12 +15,14 @@ import qgis.utils
 
 import processing
 
+from qgis.testing.mocked import get_iface
 
 APPENDED_COUNT = 'APPENDED_COUNT'
 UPDATED_COUNT = 'UPDATED_COUNT'
 SKIPPED_COUNT = 'SKIPPED_COUNT'
 
-from qgis.testing.mocked import get_iface
+PG_BD_1 = "db1"
+
 
 # def get_iface():
 #     global iface
@@ -76,7 +78,7 @@ def get_pg_connection_uri(dict_conn, level=1):
     return ' '.join(uri)
 
 
-def get_pg_conn(db='db1'):
+def get_pg_conn(db=PG_BD_1):
     dict_conn = {'host': 'postgres',
                  'port': 5432,
                  'username': 'user1',
@@ -92,7 +94,7 @@ def get_pg_conn(db='db1'):
     return conn
 
 
-def get_qgis_pg_layer(db='db1', table='target_table'):
+def get_qgis_pg_layer(db=PG_BD_1, table='target_table'):
     uri = QgsDataSourceUri()
 
     # set host name, port, database name, username and password
@@ -103,6 +105,18 @@ def get_qgis_pg_layer(db='db1', table='target_table'):
     uri.setDataSource("public", table, None, aKeyColumn="id")
 
     return QgsVectorLayer(uri.uri(), table, "postgres")
+
+
+def prepare_pg_db_1():
+    conn = get_pg_conn(PG_BD_1)
+    if conn:
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE target_table(id serial NOT NULL, name text, real_value real, date_value timestamp, exra_value text);
+            ALTER TABLE target_table ADD CONSTRAINT pk_target_table PRIMARY KEY (id);
+        """)
+        cur.close()
+        conn.commit()
 
 
 def get_qgis_gpkg_layer(output_layer_name, layer_path=None):
@@ -118,6 +132,7 @@ class CommonTests(unittest.TestCase):
     def _test_copy_all(self, input_layer_name, output_layer, input_layer_path=None):
         if input_layer_path is None:
             # Note that when input and output are in the same DB, input_layer_path should be passed as arg
+            # so that no other temp file is generated.
             input_layer_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
         res = processing.run("etl_load:appendfeaturestolayer",
@@ -132,16 +147,16 @@ class CommonTests(unittest.TestCase):
         self.assertIsNone(res[SKIPPED_COUNT])
         return res
 
-    def _test_copy_selected(self, input_layer_name, output_layer_name, select_id=1):
-        print("### ", input_layer_name, output_layer_name)
-        gpkg = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
+    def _test_copy_selected(self, input_layer_name, output_layer, input_layer_path=None, select_id=1):
+        if input_layer_path is None:
+            # Note that when input and output are in the same DB, input_layer_path should be passed as arg
+            # so that no other temp file is generated.
+            input_layer_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
-        input_layer_path = "{}|layername={}".format(gpkg, input_layer_name)
-        output_layer_path = "{}|layername={}".format(gpkg, output_layer_name)
+        input_layer_path = "{}|layername={}".format(input_layer_path, input_layer_name)
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
         self.assertTrue(input_layer.isValid())
-        output_layer = QgsVectorLayer(output_layer_path, 'layer name', 'ogr')
-        self.assertTrue(output_layer.isValid())
+
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         input_layer.select(select_id)  # fid=1

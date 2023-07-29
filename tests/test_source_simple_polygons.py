@@ -30,7 +30,8 @@ class TestSimplePolySimplePoly(unittest.TestCase):
 
     def test_copy_selected(self):
         print('\nINFO: Validating simple_pol-simple_pol copy&paste selected...')
-        res = self.common._test_copy_selected('source_simple_polygons', 'target_simple_polygons')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_simple_polygons')
+        res = self.common._test_copy_selected('source_simple_polygons', output_layer, layer_path)
         layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
@@ -77,12 +78,14 @@ class TestSimplePolySimpleLine(unittest.TestCase):
 
     def test_copy_selected(self):
         print('\nINFO: Validating simple_pol-simple_lin copy&paste selected...')
-        res = self.common._test_copy_selected('source_simple_polygons', 'target_simple_lines')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_simple_lines')
+        res = self.common._test_copy_selected('source_simple_polygons', output_layer, layer_path)
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 0)  # Selected id has a hole, cannot be copied
         self.assertEqual(res[APPENDED_COUNT], 0)
 
-        res = self.common._test_copy_selected('source_simple_polygons', 'target_simple_lines', 2)
+        output_layer, layer_path = get_qgis_gpkg_layer('target_simple_lines')
+        res = self.common._test_copy_selected('source_simple_polygons', output_layer, layer_path, select_id=2)
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)

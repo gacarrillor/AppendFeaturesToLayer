@@ -39,7 +39,8 @@ class TestTableTable(unittest.TestCase):
 
     def test_copy_selected(self):
         print('\nINFO: Validating table-table copy&paste selected...')
-        res = self.common._test_copy_selected('source_table', 'target_table')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        res = self.common._test_copy_selected('source_table', output_layer, layer_path)
         layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
@@ -145,13 +146,12 @@ class TestTableTable(unittest.TestCase):
     def test_skip_different_field_types_can_convert(self):
         print('\nINFO: Validating table-table skip different field types can convert...')
 
-        res = self.common._test_copy_selected('source_table', 'target_table')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        res = self.common._test_copy_selected('source_table', output_layer, layer_path)
         layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)
-
-        output_path = layer.source().split('|')[0]
 
         # Let's overwrite the target feature to have a float as string
         layer.dataProvider().changeAttributeValues({next(layer.getFeatures()).id(): {1: "3.1416"}})  # name --> "3.1416"
@@ -160,7 +160,7 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(len(check_list_values), 1)
         self.assertEqual(check_list_values[0], "3.1416")
 
-        input_layer_path = "{}|layername={}".format(output_path, 'source_table')
+        input_layer_path = "{}|layername={}".format(layer_path, 'source_table')
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
 
         # Now let's check counts for skip action
@@ -177,16 +177,15 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[SKIPPED_COUNT], 1)
 
         # Now test the reverse
-        res = self.common._test_copy_selected('source_table', 'target_table')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        res = self.common._test_copy_selected('source_table', output_layer, layer_path)
         layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)
 
-        output_path = layer.source().split('|')[0]
-
         # Let's overwrite the target feature to have a float as string
-        input_layer_path = "{}|layername={}".format(output_path, 'source_table')
+        input_layer_path = "{}|layername={}".format(layer_path, 'source_table')
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
         input_layer.dataProvider().changeAttributeValues({1: {1: "3.1416"}})  # name --> "3.1416"
 
@@ -213,7 +212,8 @@ class TestTableTable(unittest.TestCase):
         # Since it can't convert between types (and since types are different), no duplicates can be found, so
         # everything is appended.
 
-        res = self.common._test_copy_selected('source_table', 'target_table')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        res = self.common._test_copy_selected('source_table', output_layer, layer_path)
         layer = res['TARGET_LAYER']
 
         self.assertEqual(layer.featureCount(), 1)
