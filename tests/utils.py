@@ -173,18 +173,19 @@ class CommonTests(unittest.TestCase):
 
         return res
 
-    def _test_update(self, input_layer_name, output_layer_name):
-        print("### ", input_layer_name, output_layer_name)
-        gpkg = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
+    def _test_update(self, input_layer_name, output_layer, input_layer_path=None):
+        if input_layer_path is None:
+            # Note that when input and output are in the same DB, input_layer_path should be passed as arg
+            # so that no other temp file is generated.
+            input_layer_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
-        input_layer_path = "{}|layername={}".format(gpkg, input_layer_name)
-        output_layer_path = "{}|layername={}".format(gpkg, output_layer_name)
+        input_layer_path = "{}|layername={}".format(input_layer_path, input_layer_name)
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
         self.assertTrue(input_layer.isValid())
-        output_layer = QgsVectorLayer(output_layer_path, 'layer name', 'ogr')
-        self.assertTrue(output_layer.isValid())
+
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
+        # First, let's have some records to update
         res = processing.run("etl_load:appendfeaturestolayer",
                              {'SOURCE_LAYER': input_layer,
                               'SOURCE_FIELD': None,
@@ -197,7 +198,10 @@ class CommonTests(unittest.TestCase):
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
 
+        # Let's modify values in the input layer to attempt to update later in the output via our plugin
         input_layer.dataProvider().changeAttributeValues({1: {3: 30}})  # real_value --> 30
+
+        # Create another record in input_layer to test that not-found records are appended
         new_feature = QgsFeature()
         new_feature.setAttributes([5, 'ABC', 1, 2.0])
         input_layer.dataProvider().addFeatures([new_feature])
