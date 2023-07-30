@@ -44,7 +44,8 @@ class TestSimplePolySimplePoly(unittest.TestCase):
 
     def test_skip_all(self):
         print('\nINFO: Validating simple_pol-simple_pol skip (all) duplicate features...')
-        self.common._test_skip_all('source_simple_polygons', 'target_simple_polygons')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_simple_polygons')
+        self.common._test_skip_all('source_simple_polygons', output_layer, layer_path)
 
     def test_skip_some(self):
         print('\nINFO: Validating simple_pol-simple_pol skip (some) duplicate features...')
