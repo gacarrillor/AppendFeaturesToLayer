@@ -280,19 +280,19 @@ class CommonTests(unittest.TestCase):
         feature = next(output_layer.getFeatures('"name"=\'def\''))
         self.assertTrue(real_values_are_equal(feature['real_value'], 1.41, 3))
 
-    def _test_skip_some(self, input_layer_name, output_layer_name):
-        print("### ", input_layer_name, output_layer_name)
+    def _test_skip_some(self, input_layer_name, output_layer, input_layer_path=None):
+        if input_layer_path is None:
+            # Note that when input and output are in the same DB, input_layer_path should be passed as arg
+            # so that no other temp file is generated.
+            input_layer_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
-        gpkg = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
-
-        input_layer_path = "{}|layername={}".format(gpkg, input_layer_name)
-        output_layer_path = "{}|layername={}".format(gpkg, output_layer_name)
+        input_layer_path = "{}|layername={}".format(input_layer_path, input_layer_name)
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
         self.assertTrue(input_layer.isValid())
-        output_layer = QgsVectorLayer(output_layer_path, 'layer name', 'ogr')
-        self.assertTrue(output_layer.isValid())
+
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
+        # First, let's have some records to be able to test the skip mode
         res = processing.run("etl_load:appendfeaturestolayer",
                              {'SOURCE_LAYER': input_layer,
                               'SOURCE_FIELD': None,
@@ -305,7 +305,11 @@ class CommonTests(unittest.TestCase):
         self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
 
+        # Let's modify values in the input layer to be able to check that
+        # these new values are never transfererd to the output layer
         input_layer.dataProvider().changeAttributeValues({1: {3: 30}})  # real_value --> 30
+
+        # Also create a new feature that won't be skipped but appended
         new_feature = QgsFeature()
         new_feature.setAttributes([5, 'ABC', 1, 2.0])
         input_layer.dataProvider().addFeatures([new_feature])
@@ -323,7 +327,7 @@ class CommonTests(unittest.TestCase):
         self.assertEqual(res[SKIPPED_COUNT], 2)
 
         feature = next(output_layer.getFeatures('"name"=\'abc\''))
-        self.assertEqual(feature['real_value'], 3.1416)
+        self.assertTrue(real_values_are_equal(feature['real_value'], 3.1416, 5))
 
         feature = next(output_layer.getFeatures('"name"=\'ABC\''))
         self.assertEqual(feature['real_value'], 2.0)
