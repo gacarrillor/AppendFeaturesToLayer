@@ -23,6 +23,8 @@ SKIPPED_COUNT = 'SKIPPED_COUNT'
 
 PG_BD_1 = "db1"
 
+TEST_DIR = tempfile.mkdtemp()  # To send all temporal copies there
+
 
 # def get_iface():
 #     global iface
@@ -41,7 +43,9 @@ def get_test_path(path):
 def get_test_file_copy_path(path):
     src_path = get_test_path(path)
     dst_path = os.path.split(src_path)
-    dst_path = os.path.join(dst_path[0], next(tempfile._get_candidate_names()) + dst_path[1])
+
+    global TEST_DIR
+    dst_path = os.path.join(TEST_DIR, next(tempfile._get_candidate_names()) + dst_path[1])
     print("-->", src_path, dst_path)
     copyfile(src_path, dst_path)
     return dst_path
