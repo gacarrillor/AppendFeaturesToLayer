@@ -63,6 +63,10 @@ class TestPGTablePGTable(unittest.TestCase):
         print('\nINFO: Validating pg table - pg table skip (all) duplicate features...')
         self.common._test_skip_all('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
 
+    def test_skip_some(self):
+        print('\nINFO: Validating pg table - pg table skip (some) duplicate features...')
+        self.common._test_skip_some('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
+
     @staticmethod
     def tearDown():
         conn = get_pg_conn()
