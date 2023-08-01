@@ -63,7 +63,8 @@ class TestTableTable(unittest.TestCase):
 
     def test_skip_none(self):
         print('\nINFO: Validating table-table skip (none) duplicate features...')
-        self.common._test_skip_none('source_table', 'target_table')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        self.common._test_skip_none('source_table', output_layer, layer_path)
 
     def test_skip_update_1_m(self):
         print('\nINFO: Validating table-table skip/update 1:m...')
