@@ -98,7 +98,7 @@ def get_pg_conn(db=PG_BD_1):
     return conn
 
 
-def get_qgis_pg_layer(db=PG_BD_1, table='target_table'):
+def get_qgis_pg_layer(db=PG_BD_1, table='target_table', truncate=False):
     uri = QgsDataSourceUri()
 
     # set host name, port, database name, username and password
@@ -108,7 +108,11 @@ def get_qgis_pg_layer(db=PG_BD_1, table='target_table'):
     # subset (WHERE clause)
     uri.setDataSource("public", table, None, aKeyColumn="id")
 
-    return QgsVectorLayer(uri.uri(), table, "postgres")
+    layer = QgsVectorLayer(uri.uri(), table, "postgres")
+    if truncate:
+        layer.dataProvider().truncate()
+
+    return layer
 
 
 def prepare_pg_db_1():
@@ -116,18 +120,18 @@ def prepare_pg_db_1():
     if conn:
         cur = conn.cursor()
         cur.execute("""
-            CREATE TABLE target_table(id serial NOT NULL, name text, real_value real, date_value timestamp, exra_value text);
+            CREATE TABLE target_table(id serial NOT NULL, name text, real_value double precision, date_value timestamp, exra_value text);
             ALTER TABLE target_table ADD CONSTRAINT pk_target_table PRIMARY KEY (id);
         """)
         cur.close()
         conn.commit()
 
 
-def get_qgis_gpkg_layer(output_layer_name, layer_path=None):
+def get_qgis_gpkg_layer(layer_name, layer_path=None):
     if layer_path is None:
         layer_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
-    return QgsVectorLayer("{}|layername={}".format(layer_path, output_layer_name), "", "ogr"), layer_path
+    return QgsVectorLayer("{}|layername={}".format(layer_path, layer_name), "", "ogr"), layer_path
 
 
 def real_values_are_equal(r1, r2, precision):
