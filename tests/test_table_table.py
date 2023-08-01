@@ -224,14 +224,6 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 1)
 
         output_path = layer.source().split('|')[0]
-
-        # Let's overwrite the target feature to have a float as string
-        layer.dataProvider().changeAttributeValues({next(layer.getFeatures()).id(): {1: "3.1416"}})  # name --> "3.1416"
-
-        check_list_values = [f['name'] for f in layer.getFeatures()]
-        self.assertEqual(len(check_list_values), 1)
-        self.assertEqual(check_list_values[0], "3.1416")
-
         input_layer_path = "{}|layername={}".format(output_path, 'source_table')
         input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
 

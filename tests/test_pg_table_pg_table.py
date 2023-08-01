@@ -13,6 +13,7 @@ import processing
 from tests.utils import (CommonTests,
                          get_pg_conn,
                          get_qgis_pg_layer,
+                         get_qgis_gpkg_layer,
                          get_test_file_copy_path,
                          prepare_pg_db_1,
                          PG_BD_1,
@@ -70,6 +71,171 @@ class TestPGTablePGTable(unittest.TestCase):
     def test_skip_none(self):
         print('\nINFO: Validating pg table - pg table skip (none) duplicate features...')
         self.common._test_skip_none('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
+
+    def test_skip_update_1_m(self):
+        print('\nINFO: Validating pg table - pg table skip/update 1:m...')
+        # Let's copy twice the same 2 features to end up with 1:m (twice)
+        output_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
+        self.common._test_copy_all('source_table', output_layer)
+        res = self.common._test_copy_all('source_table', output_layer)
+        layer = res['TARGET_LAYER']
+        self.assertEqual(layer.featureCount(), 4)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+
+        # Now let's check counts for skip action
+        input_layer, layer_path = get_qgis_gpkg_layer('source_table')
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'name',
+                              'ACTION_ON_DUPLICATE': 1})  # Skip
+
+        self.assertEqual(layer.featureCount(), 4)
+        self.assertEqual(res[APPENDED_COUNT], 0)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 4)
+
+        # And counts for update action
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'name',
+                              'ACTION_ON_DUPLICATE': 2})  # Update
+
+        self.assertEqual(layer.featureCount(), 4)
+        self.assertEqual(res[APPENDED_COUNT], 0)
+        self.assertEqual(res[UPDATED_COUNT], 4)
+        self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
+
+    def test_skip_update_m_1(self):
+        print('\nINFO: Validating pg table - pg table skip/update m:1...')
+        output_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
+        res = self.common._test_copy_all('source_table', output_layer)
+
+        # Let's give both source features the same name to have an m:1 scenario
+        input_layer, layer_path = get_qgis_gpkg_layer('source_table')
+        input_layer.dataProvider().changeAttributeValues({2: {1: 'abc'}})  # name --> abc
+
+        s = set()
+        s.update([f['name'] for f in input_layer.getFeatures()])
+        self.assertEqual(len(s), 1)  # Have really both features the same name?
+
+        # Now let's check counts for skip action
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': 'name',
+                              'ACTION_ON_DUPLICATE': 1})  # Skip
+
+        self.assertEqual(output_layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 0)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 2)
+
+        # And counts for update action
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': output_layer,
+                              'TARGET_FIELD': 'name',
+                              'ACTION_ON_DUPLICATE': 2})  # Update
+
+        self.assertEqual(output_layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 0)
+        self.assertEqual(res[UPDATED_COUNT], 1)  # We do 2 updates on a single feature, the count is 1!
+        self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
+
+    def test_skip_different_field_types_can_convert(self):
+        print('\nINFO: Validating pg table - pg table skip different field types can convert...')
+
+        output_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
+        input_layer, input_layer_path = get_qgis_gpkg_layer('source_table')
+        res = self.common._test_copy_selected('source_table', output_layer, input_layer_path)
+        layer = res['TARGET_LAYER']
+
+        self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+
+        # Let's overwrite the target feature to have a float as string
+        layer.dataProvider().changeAttributeValues({next(layer.getFeatures()).id(): {1: "3.1416"}})  # name --> "3.1416"
+
+        check_list_values = [f['name'] for f in layer.getFeatures()]
+        self.assertEqual(len(check_list_values), 1)
+        self.assertEqual(check_list_values[0], "3.1416")
+
+        # Now let's check counts for skip action
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'real_value',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'name',
+                              'ACTION_ON_DUPLICATE': 1})  # Skip
+
+        self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 1)
+
+        # Now test the reverse
+        output_layer = get_qgis_pg_layer(PG_BD_1, 'target_table', truncate=True)
+        res = self.common._test_copy_selected('source_table', output_layer, input_layer_path)
+        layer = res['TARGET_LAYER']
+
+        self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", [f.attributes() for f in output_layer.getFeatures()])
+
+        # Let's overwrite the source feature to have a float as string
+        # input_layer_path = "{}|layername={}".format(layer_path, 'source_table')
+        # input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+        input_layer.dataProvider().changeAttributeValues({1: {1: "3.1416"}})  # name --> "3.1416"
+
+        check_list_values = [f['name'] for f in input_layer.getFeatures()]
+        self.assertEqual(len(check_list_values), 2)
+        self.assertEqual(check_list_values, ["3.1416", "def"])
+
+        # Now let's check counts for skip action
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'name',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'real_value',
+                              'ACTION_ON_DUPLICATE': 1})  # Skip
+
+        self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 1)
+
+    def test_skip_different_field_types_cannot_convert(self):
+        print('\nINFO: Validating pg table - pg table skip different field types cannot convert...')
+
+        # Since it can't convert between types (and since types are different), no duplicates can be found, so
+        # everything is appended.
+
+        output_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
+        input_layer, input_layer_path = get_qgis_gpkg_layer('source_table')
+        res = self.common._test_copy_selected('source_table', output_layer, input_layer_path)
+        layer = res['TARGET_LAYER']
+
+        self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+
+        # Now let's check counts for skip action
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'real_value',
+                              'TARGET_LAYER': layer,
+                              'TARGET_FIELD': 'date_value',
+                              'ACTION_ON_DUPLICATE': 1})  # Skip
+
+        self.assertEqual(layer.featureCount(), 3)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertEqual(res[SKIPPED_COUNT], 0)
 
     @staticmethod
     def tearDown():
