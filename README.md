@@ -1,4 +1,5 @@
 ![Unit tests](https://github.com/gacarrillor/AppendFeaturesToLayer/actions/workflows/main.yml/badge.svg)
+[![Release](https://img.shields.io/github/v/release/gacarrillor/AppendFeaturesToLayer.svg)](https://github.com/gacarrillor/AppendFeaturesToLayer/releases)
 
 # Append Features to Layer
 
@@ -7,16 +8,17 @@ QGIS v3 plugin that adds a new Processing algorithm to append/update features fr
 
 **License**: This plugin is distributed under the [GNU GPL v3 license](https://github.com/gacarrillor/AppendFeaturesToLayer/blob/master/AppendFeaturesToLayer/LICENSE).
 
-  [Use cases](#use-cases)<br>
-  [How does it work](#how-does-it-work)<br>
-  [Where to find the algorithm](#where-to-find-the-algorithm)<br>
-  [Examples](#examples)<br>
-  [Using Append Features to Layer in standalone PyQGIS scripts](#using-append-features-to-layer-in-standalone-pyqgis-scripts)<br>
-  [Using Append Features to Layer via QGIS Process](#using-append-features-to-layer-via-qgis-process)<br>
-  [Running Unit Tests Locally](#running-unit-tests-locally)
+➡️  [Use cases](#%EF%B8%8F-use-cases)<br>
+🛠️  [How does it work](#%EF%B8%8F-how-does-it-work)<br>
+🔎  [Where to find the algorithm](#-where-to-find-the-algorithm)<br>
+📝  [Examples](#-examples)<br>
+🐍  [Using Append Features to Layer in standalone PyQGIS scripts](#-using-append-features-to-layer-in-standalone-pyqgis-scripts)<br>
+⚙️  [Using Append Features to Layer via QGIS Process](#%EF%B8%8F-using-append-features-to-layer-via-qgis-process)<br>
+💻  [Running Unit Tests Locally](#-running-unit-tests-locally)
 
+-----------
 
-### Use cases
+### ➡️ Use cases
 
  1. **Copy & Paste features**:
 
@@ -41,7 +43,7 @@ QGIS v3 plugin that adds a new Processing algorithm to append/update features fr
     The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can **update** the existing feature's geometry/attributes based on the new feature, instead of appending it. In other words, the algorithm performs an **Upsert** (Update or Insert a feature). You can find more details below.
 
 
-### How does it work?
+### 🛠️ How does it work
 
 **Fields and geometries**
 
@@ -62,7 +64,7 @@ This algorithm allows you to choose a field in `source` and `target` layers to c
 Mode UPDATE:
   + If target layer has geometries but input layer does not, then only attributes will be updated when a duplicate feature is found, i.e., the geometry in target layer will remain untouched.
 
-### Where to find the algorithm
+### 🔎 Where to find the algorithm
 
 
 Once installed and activated, this plugin adds a new provider (`ETL_LOAD`) to QGIS Processing.
@@ -70,7 +72,7 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
 
 ![Algorithm][1]
 
-### Examples
+### 📝 Examples
 
 1. **Copy & Paste features**
 
@@ -99,7 +101,7 @@ You can find the `Append Features to Layer` algorithm in the Processing Toolbox,
 [4]: http://downloads.tuxfamily.org/tuxgis/geoblogs/AppendFeaturesToLayer/imgs/update_01.png
 [5]: https://imgur.com/6P8iSuv.png
 
-### Using Append Features to Layer in standalone PyQGIS scripts
+### 🐍 Using Append Features to Layer in standalone PyQGIS scripts
 
 Chances are you'd like to run this plugin from a PyQGIS script that works out of a QGIS GUI session. For that, take "[Using QGIS Processing algorithms from PyQGIS standalone scripts](https://gis.stackexchange.com/questions/279874/using-qgis-processing-algorithms-from-pyqgis-standalone-scripts-outside-of-gui)" into account, as well as the following code snippet.
 
@@ -125,7 +127,7 @@ result = processing.run("etl_load:appendfeaturestolayer",
                                                      # UPDATE_EXISTING_FEATURE: 2
 ```
 
-### Using Append Features to Layer via QGIS Process
+### ⚙️ Using Append Features to Layer via QGIS Process
 
 If you'd like to run the plugin without GUI, but don't want to deal with PyQGIS scripts, you can use QGIS Process. You run QGIS Process from the operating system's terminal, in this way:
 
@@ -136,7 +138,7 @@ Where `NO_ACTION`: 0, `SKIP_FEATURE`: 1, `UPDATE_EXISTING_FEATURE`: 2
 Make sure the plugin can be found in your QGIS plugins folder, that is, that you have installed the plugin in your QGIS.
 
 
-### Running Unit Tests Locally
+### 💻 Running Unit Tests Locally
 
 First, you need to set 2 environment variables:
 
