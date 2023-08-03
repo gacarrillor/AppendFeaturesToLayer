@@ -58,6 +58,7 @@ class TestPGTablePGTable(unittest.TestCase):
 
     def test_update(self):
         print('\nINFO: Validating pg table - pg table update...')
+        # Test for issue #10 (ChangeGeometries is False, but ChangeAttributeValues is True for target_table)
         self.common._test_update('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
 
     def test_skip_all(self):
