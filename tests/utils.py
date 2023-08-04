@@ -120,8 +120,25 @@ def prepare_pg_db_1():
     if conn:
         cur = conn.cursor()
         cur.execute("""
-            CREATE TABLE target_table(id serial NOT NULL, name text, real_value double precision, date_value timestamp, exra_value text);
+            CREATE TABLE IF NOT EXISTS target_table(id serial NOT NULL, name text, real_value double precision, date_value timestamp, exra_value text);
             ALTER TABLE target_table ADD CONSTRAINT pk_target_table PRIMARY KEY (id);
+
+            CREATE TABLE IF NOT EXISTS target_multi_polygons(id serial NOT NULL, geom geometry(MultiPolygon,3116) NULL, name text, real_value double precision, date_value timestamp, exra_value text);
+            ALTER TABLE target_multi_polygons ADD CONSTRAINT pk_target_multi_polygons PRIMARY KEY (id);
+        """)
+        cur.close()
+        conn.commit()
+
+
+def drop_all_tables(db=PG_BD_1):
+    conn = get_pg_conn(db)
+    if conn:
+        cur = conn.cursor()
+        cur.execute("""
+        ALTER TABLE target_table DROP CONSTRAINT IF EXISTS pk_target_table;
+        DROP TABLE target_table;
+        ALTER TABLE target_multi_polygons DROP CONSTRAINT IF EXISTS pk_target_multi_polygons;
+        DROP TABLE target_multi_polygons;
         """)
         cur.close()
         conn.commit()

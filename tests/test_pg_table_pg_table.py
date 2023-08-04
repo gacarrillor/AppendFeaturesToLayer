@@ -19,7 +19,8 @@ from tests.utils import (CommonTests,
                          PG_BD_1,
                          APPENDED_COUNT,
                          UPDATED_COUNT,
-                         SKIPPED_COUNT)
+                         SKIPPED_COUNT,
+                         drop_all_tables)
 
 start_app()
 
@@ -249,11 +250,7 @@ class TestPGTablePGTable(unittest.TestCase):
     @classmethod
     def tearDownClass(self):
         print('INFO: Tear down test_pg_table_pg_table')
-        conn = get_pg_conn()
-        cur = conn.cursor()
-        cur.execute("DROP TABLE target_table;")
-        cur.close()
-        conn.commit()
+        drop_all_tables()
         self.plugin.unload()
 
 
