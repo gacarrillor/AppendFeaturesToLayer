@@ -106,7 +106,7 @@ class TestSpatialAndNonSpatialUpdates(unittest.TestCase):
     def tearDownClass(cls):
         print('INFO: Tear down test_pg_table_pg_table')
         drop_all_tables()
-        self.plugin.unload()
+        cls.plugin.unload()
 
 
 if __name__ == '__main__':
