@@ -27,12 +27,12 @@ start_app()
 class TestSpatialAndNonSpatialUpdates(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         print('\nINFO: Set up test_parameter_errors')
         from AppendFeaturesToLayer.append_features_to_layer_plugin import AppendFeaturesToLayerPlugin
-        self.plugin = AppendFeaturesToLayerPlugin(get_iface)
-        self.plugin.initGui()
-        self.common = CommonTests()
+        cls.plugin = AppendFeaturesToLayerPlugin(get_iface)
+        cls.plugin.initGui()
+        cls.common = CommonTests()
 
         prepare_pg_db_1()
 
@@ -69,15 +69,14 @@ class TestSpatialAndNonSpatialUpdates(unittest.TestCase):
         # while the other 2 features have still a non-NULL geometry
         self.assertEqual(updated_geoms.count(QgsGeometry().asWkt()), res[APPENDED_COUNT])
 
-    def _test_update_spatial_features_from_non_spatial_layer_in_pg(self):
+    def test_update_spatial_features_from_non_spatial_layer_in_pg(self):
         print('\nINFO: Validating geometries are not updated if source layer is non-spatial in PG...')
 
-        output_layer = get_qgis_pg_layer(PG_BD_1, 'target_multi_polygons')
+        output_layer = get_qgis_pg_layer(PG_BD_1, 'target_multi_polygons', 'geom')
         input_layer, layer_path = get_qgis_gpkg_layer('source_multi_polygons')
         res = self.common._test_copy_selected('source_multi_polygons', output_layer, layer_path)
         layer = res['TARGET_LAYER']
         original_geoms = [f.geometry().asWkt() for f in layer.getFeatures()]
-        print(original_geoms)  # TODO
 
         # Non-spatial source layer
         input_layer, _ = get_qgis_gpkg_layer('source_table', layer_path)
@@ -104,7 +103,7 @@ class TestSpatialAndNonSpatialUpdates(unittest.TestCase):
         self.assertEqual(updated_geoms.count(QgsGeometry().asWkt()), res[APPENDED_COUNT])
 
     @classmethod
-    def tearDownClass(self):
+    def tearDownClass(cls):
         print('INFO: Tear down test_pg_table_pg_table')
         drop_all_tables()
         self.plugin.unload()
