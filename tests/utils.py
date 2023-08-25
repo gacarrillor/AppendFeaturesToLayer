@@ -98,7 +98,7 @@ def get_pg_conn(db=PG_BD_1):
     return conn
 
 
-def get_qgis_pg_layer(db=PG_BD_1, table='target_table', truncate=False):
+def get_qgis_pg_layer(db=PG_BD_1, table='target_table', geom_column=None, truncate=False):
     uri = QgsDataSourceUri()
 
     # set host name, port, database name, username and password
@@ -106,7 +106,7 @@ def get_qgis_pg_layer(db=PG_BD_1, table='target_table', truncate=False):
 
     # set database schema, table name, geometry column and optionally
     # subset (WHERE clause)
-    uri.setDataSource("public", table, None, aKeyColumn="id")
+    uri.setDataSource("public", table, geom_column, aKeyColumn="id")
 
     layer = QgsVectorLayer(uri.uri(), table, "postgres")
     if truncate:
