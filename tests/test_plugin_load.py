@@ -10,11 +10,11 @@ start_app()
 class TestPluginLoad(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         print('\nINFO: Set up test_plugin_load')
         from AppendFeaturesToLayer.append_features_to_layer_plugin import AppendFeaturesToLayerPlugin
-        self.plugin = AppendFeaturesToLayerPlugin(get_iface)
-        self.plugin.initGui()
+        cls.plugin = AppendFeaturesToLayerPlugin(get_iface)
+        cls.plugin.initGui()
 
     def test_plugin_load(self):
         print('INFO: Validating plugin load...')
@@ -22,9 +22,9 @@ class TestPluginLoad(unittest.TestCase):
         self.assertIn("ETL_LOAD", [provider.name() for provider in QgsApplication.processingRegistry().providers()])
 
     @classmethod
-    def tearDownClass(self):
+    def tearDownClass(cls):
         print('INFO: Tear down test_plugin_load')
-        self.plugin.unload()
+        cls.plugin.unload()
 
 
 if __name__ == '__main__':
