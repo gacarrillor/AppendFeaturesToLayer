@@ -133,6 +133,14 @@ def prepare_pg_db_1():
         conn.commit()
 
 
+def truncate_table(db=PG_BD_1, table='target_table'):
+    conn = get_pg_conn(db)
+    cur = conn.cursor()
+    cur.execute(f"TRUNCATE {table};")
+    cur.close()
+    conn.commit()
+
+
 def drop_all_tables(db=PG_BD_1):
     conn = get_pg_conn(db)
     if conn:
