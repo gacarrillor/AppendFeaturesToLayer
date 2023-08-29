@@ -11,7 +11,6 @@ from qgis.testing.mocked import get_iface
 import processing
 
 from tests.utils import (CommonTests,
-                         get_pg_conn,
                          get_qgis_pg_layer,
                          get_qgis_gpkg_layer,
                          get_test_file_copy_path,
@@ -20,7 +19,8 @@ from tests.utils import (CommonTests,
                          APPENDED_COUNT,
                          UPDATED_COUNT,
                          SKIPPED_COUNT,
-                         drop_all_tables)
+                         drop_all_tables,
+                         truncate_table)
 
 start_app()
 
@@ -28,14 +28,12 @@ start_app()
 class TestPGTablePGTable(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         print('\nINFO: Set up test_table_table')
         from AppendFeaturesToLayer.append_features_to_layer_plugin import AppendFeaturesToLayerPlugin
-        self.plugin = AppendFeaturesToLayerPlugin(get_iface)
-        self.plugin.initGui()
-
-        self.common = CommonTests()
-
+        cls.plugin = AppendFeaturesToLayerPlugin(get_iface)
+        cls.plugin.initGui()
+        cls.common = CommonTests()
         prepare_pg_db_1()
 
     def test_copy_all(self):
@@ -241,17 +239,13 @@ class TestPGTablePGTable(unittest.TestCase):
 
     @staticmethod
     def tearDown():
-        conn = get_pg_conn()
-        cur = conn.cursor()
-        cur.execute("TRUNCATE target_table;")
-        cur.close()
-        conn.commit()
+        truncate_table(PG_BD_1, 'target_table')
 
     @classmethod
-    def tearDownClass(self):
+    def tearDownClass(cls):
         print('INFO: Tear down test_pg_table_pg_table')
         drop_all_tables()
-        self.plugin.unload()
+        cls.plugin.unload()
 
 
 if __name__ == '__main__':
