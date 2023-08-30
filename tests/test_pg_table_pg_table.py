@@ -186,7 +186,6 @@ class TestPGTablePGTable(unittest.TestCase):
 
         self.assertEqual(layer.featureCount(), 1)
         self.assertEqual(res[APPENDED_COUNT], 1)
-        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", [f.attributes() for f in output_layer.getFeatures()])
 
         # Let's overwrite the source feature to have a float as string
         # input_layer_path = "{}|layername={}".format(layer_path, 'source_table')
@@ -215,7 +214,6 @@ class TestPGTablePGTable(unittest.TestCase):
 
         # Since it can't convert between types (and since types are different), no duplicates can be found, so
         # everything is appended.
-
         output_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
         input_layer, input_layer_path = get_qgis_gpkg_layer('source_table')
         res = self.common._test_copy_selected('source_table', output_layer, input_layer_path)
