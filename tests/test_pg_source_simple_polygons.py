@@ -13,7 +13,7 @@ from tests.utils import (CommonTests,
 start_app()
 
 
-class TestSimplePolySimplePoly(unittest.TestCase):
+class TestPGSimplePolySimplePoly(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
