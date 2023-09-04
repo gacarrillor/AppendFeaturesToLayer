@@ -123,6 +123,9 @@ def prepare_pg_db_1():
             CREATE TABLE IF NOT EXISTS target_table(id serial NOT NULL, name text, real_value double precision, date_value timestamp, exra_value text);
             ALTER TABLE target_table ADD CONSTRAINT pk_target_table PRIMARY KEY (id);
 
+            CREATE TABLE IF NOT EXISTS target_simple_lines(id serial NOT NULL, geom geometry(Linestring,3116) NULL, name text);
+            ALTER TABLE target_simple_lines ADD CONSTRAINT pk_target_simple_lines PRIMARY KEY (id);
+
             CREATE TABLE IF NOT EXISTS target_simple_polygons(id serial NOT NULL, geom geometry(Polygon,3116) NULL, name text, real_value double precision, date_value timestamp, exra_value text);
             ALTER TABLE target_simple_polygons ADD CONSTRAINT pk_target_simple_polygons PRIMARY KEY (id);
 
@@ -148,6 +151,8 @@ def drop_all_tables(db=PG_BD_1):
         cur.execute("""
         ALTER TABLE target_table DROP CONSTRAINT IF EXISTS pk_target_table;
         DROP TABLE target_table;
+        ALTER TABLE target_simple_lines DROP CONSTRAINT IF EXISTS pk_target_simple_lines;
+        DROP TABLE target_simple_lines;
         ALTER TABLE target_simple_polygons DROP CONSTRAINT IF EXISTS pk_target_simple_polygons;
         DROP TABLE target_simple_polygons;
         ALTER TABLE target_multi_polygons DROP CONSTRAINT IF EXISTS pk_target_multi_polygons;
