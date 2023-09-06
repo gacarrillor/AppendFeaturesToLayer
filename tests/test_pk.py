@@ -48,7 +48,7 @@ class TestTablePK(unittest.TestCase):
         QgsProject.instance().addMapLayers([input_layer, output_layer])
 
         # Let's create a feature with T_Id=1, we'll update its
-        # corresponding feature (which has a T_Id=100) successfully
+        # corresponding feature (which has a T_Id=100 in the source) successfully
         f = QgsFeature(output_layer.fields())
         f.setAttribute("T_Id", 1)
         f.setAttribute("codigo", "R0001")
@@ -79,8 +79,8 @@ class TestTablePK(unittest.TestCase):
         self.assertEqual(res[UPDATED_COUNT], 3)
         self.assertIsNone(res[SKIPPED_COUNT])
 
-    def test_append_update_PKs_pg(self):
-        print('\nINFO: Validating avoiding to set/update PKs in PG...')
+    def test_append_update_PKs_pg_serial_notnull(self):
+        print('\nINFO: Validating avoiding to set/update PKs (serial, NOT NULL) in PG...')
         source_gpkg = get_test_file_copy_path('source_pk.gpkg')
 
         # gpkg = get_test_file_copy_path('bd_pk.gpkg')
@@ -95,37 +95,49 @@ class TestTablePK(unittest.TestCase):
         QgsProject.instance().addMapLayers([input_layer, pg_layer])
 
         # Let's create a feature with T_Id=1, we'll update its
-        # corresponding feature (which has a T_Id=100) successfully
+        # corresponding feature (which has a T_Id=100 in the source) successfully
         f = QgsFeature(pg_layer.fields())
-        f.setAttribute("T_Id", 1)
+        # f.setAttribute("T_Id", 1)  # We shouldn't force a PK here, since we've got a serial, which is automatic
         f.setAttribute("codigo", "R0001")
         f.setAttribute("descripcion", "ABC")
         self.assertTrue(pg_layer.dataProvider().addFeatures([f]))
         self.assertEqual(pg_layer.featureCount(), 1)
+        # print([f.name() for f in pg_layer.fields()])
+        # print([f.attributes() for f in pg_layer.getFeatures()])
 
-        # res = processing.run("etl_load:appendfeaturestolayer",
-        #                      {'SOURCE_LAYER': input_layer,
-        #                       'SOURCE_FIELD': None,
-        #                       'TARGET_LAYER': pg_layer,
-        #                       'TARGET_FIELD': None,
-        #                       'ACTION_ON_DUPLICATE': 0})  # No action
-        #
-        # self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
-        # self.assertEqual(res[APPENDED_COUNT], 2)
-        # self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
-        # self.assertIsNone(res[SKIPPED_COUNT])
-        #
-        # res = processing.run("etl_load:appendfeaturestolayer",
-        #                      {'SOURCE_LAYER': input_layer,
-        #                       'SOURCE_FIELD': 'codigo',
-        #                       'TARGET_LAYER': pg_layer,
-        #                       'TARGET_FIELD': 'codigo',
-        #                       'ACTION_ON_DUPLICATE': 2})  # UPDATE
-        #
-        # self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
-        # self.assertEqual(res[APPENDED_COUNT], 0)
-        # self.assertEqual(res[UPDATED_COUNT], 3)
-        # self.assertIsNone(res[SKIPPED_COUNT])
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': None,
+                              'TARGET_LAYER': pg_layer,
+                              'TARGET_FIELD': None,
+                              'ACTION_ON_DUPLICATE': 0})  # No action
+
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        self.assertEqual([f["T_Id"] for f in pg_layer.getFeatures()], [1, 2, 3])  # Automatic PKs
+
+        # print([f.name() for f in pg_layer.fields()])
+        # print([f.attributes() for f in pg_layer.getFeatures()])
+
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'codigo',
+                              'TARGET_LAYER': pg_layer,
+                              'TARGET_FIELD': 'codigo',
+                              'ACTION_ON_DUPLICATE': 2})  # UPDATE
+
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
+        self.assertEqual(res[APPENDED_COUNT], 0)
+        self.assertEqual(res[UPDATED_COUNT], 3)
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        self.assertEqual([f["T_Id"] for f in pg_layer.getFeatures()], [1, 2, 3])  # We don't touch the automatic PKs
+
+        # print([f.name() for f in pg_layer.fields()])
+        # print([f.attributes() for f in pg_layer.getFeatures()])
 
     @classmethod
     def tearDownClass(cls):
