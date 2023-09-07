@@ -134,6 +134,9 @@ def prepare_pg_db_1():
 
             CREATE TABLE IF NOT EXISTS tipo_regla("T_Id" serial NOT NULL, codigo text, descripcion text);
             ALTER TABLE tipo_regla ADD CONSTRAINT pk_tipo_regla PRIMARY KEY ("T_Id");
+
+            CREATE TABLE IF NOT EXISTS tipo_regla_no_serial("T_Id" integer NOT NULL, codigo text, descripcion text);
+            ALTER TABLE tipo_regla_no_serial ADD CONSTRAINT pk_tipo_regla_no_serial PRIMARY KEY ("T_Id");
         """)
         cur.close()
         conn.commit()
@@ -162,6 +165,8 @@ def drop_all_tables(db=PG_BD_1):
         DROP TABLE target_multi_polygons;
         ALTER TABLE tipo_regla DROP CONSTRAINT IF EXISTS pk_tipo_regla;
         DROP TABLE tipo_regla;
+        ALTER TABLE tipo_regla_no_serial DROP CONSTRAINT IF EXISTS pk_tipo_regla_no_serial;
+        DROP TABLE tipo_regla_no_serial;
         """)
         cur.close()
         conn.commit()
