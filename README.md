@@ -59,6 +59,15 @@ This algorithm allows you to choose a field in `source` and `target` layers to c
   2) SKIP new feature if duplicate is found.
   3) UPDATE the feature in `target` layer with attributes (including geometry) from the feature in the `source` layer.
 
+**Note on Primary Keys**
+
+The algorithm deals with target layer's Primary Keys in this way:
+
+|           PRIMARY KEY           |                                                    APPEND mode                                                     |                UPDATE mode                 |
+|:-------------------------------:|:------------------------------------------------------------------------------------------------------------------:|:------------------------------------------:|
+| Automatic PK<br/>(e.g., serial) |               It lets the provider (e.g., PostgreSQL, GeoPackage, etc.) fill the value automatically               | It doesn't modify the value already stored |
+|        Non-automatic PK         | You need to provide a value for the PK in the source layer, because such value wil be set in the target layer's PK | It doesn't modify the value already stored |
+
 **Note on geometry updates**
 
 Mode UPDATE:
