@@ -12,7 +12,7 @@ import processing
 
 from tests.utils import (CommonTests,
                          APPENDED_COUNT,
-                         UPDATED_COUNT,
+                         UPDATED_FEATURE_COUNT,
                          SKIPPED_COUNT,
                          get_test_file_copy_path,
                          get_test_path,
@@ -64,7 +64,7 @@ class TestTablePK(unittest.TestCase):
 
         self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
         self.assertEqual(res[APPENDED_COUNT], 2)
-        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
 
         # print([f.name() for f in output_layer.fields()])
@@ -80,7 +80,7 @@ class TestTablePK(unittest.TestCase):
 
         self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
         self.assertEqual(res[APPENDED_COUNT], 0)
-        self.assertEqual(res[UPDATED_COUNT], 3)  # Only 1 feature (and 1 attribute in that feature) is actually changed
+        self.assertEqual(res[UPDATED_FEATURE_COUNT], 3)  # Only 1 feature (and 1 attribute in that feature) is actually changed
         self.assertIsNone(res[SKIPPED_COUNT])
 
         # print([f.name() for f in output_layer.fields()])
@@ -124,7 +124,7 @@ class TestTablePK(unittest.TestCase):
 
         self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
         self.assertEqual(res[APPENDED_COUNT], 2)
-        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
 
         # print([f.name() for f in pg_layer.fields()])
@@ -140,7 +140,7 @@ class TestTablePK(unittest.TestCase):
 
         self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
         self.assertEqual(res[APPENDED_COUNT], 0)
-        self.assertEqual(res[UPDATED_COUNT], 3)  # Only 1 feature (and 1 attribute in that feature) is actually changed
+        self.assertEqual(res[UPDATED_FEATURE_COUNT], 3)  # Only 1 feature (and 1 attribute in that feature) is actually changed
         self.assertIsNone(res[SKIPPED_COUNT])
 
         # print([f.name() for f in pg_layer.fields()])
@@ -184,7 +184,7 @@ class TestTablePK(unittest.TestCase):
 
         self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
         self.assertEqual(res[APPENDED_COUNT], 2)
-        self.assertIsNone(res[UPDATED_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
 
         # print([f.name() for f in pg_layer.fields()])
@@ -200,7 +200,7 @@ class TestTablePK(unittest.TestCase):
 
         self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
         self.assertEqual(res[APPENDED_COUNT], 0)
-        self.assertEqual(res[UPDATED_COUNT], 3)  # Only 1 feature (and 1 attribute in that feature) is actually changed
+        self.assertEqual(res[UPDATED_FEATURE_COUNT], 3)  # Only 1 feature (and 1 attribute in that feature) is actually changed
         self.assertIsNone(res[SKIPPED_COUNT])
 
         # print([f.name() for f in pg_layer.fields()])

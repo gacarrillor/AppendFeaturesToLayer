@@ -13,7 +13,7 @@ import processing
 from tests.utils import (get_test_file_copy_path,
                          APPENDED_COUNT,
                          SKIPPED_COUNT,
-                         UPDATED_COUNT)
+                         UPDATED_FEATURE_COUNT)
 
 start_app()
 
@@ -41,7 +41,7 @@ class TestParameterErrors(unittest.TestCase):
 
         self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])
-        self.assertIsNone(res[UPDATED_COUNT])
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])
         self.assertIsNone(res[SKIPPED_COUNT])
 
         # Target layer remains untouched
@@ -63,7 +63,7 @@ class TestParameterErrors(unittest.TestCase):
 
         self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])
-        self.assertIsNone(res[UPDATED_COUNT])
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])
         self.assertIsNone(res[SKIPPED_COUNT])
 
         # Target layer remains untouched
@@ -82,7 +82,7 @@ class TestParameterErrors(unittest.TestCase):
 
         self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])
-        self.assertIsNone(res[UPDATED_COUNT])
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])
         self.assertIsNone(res[SKIPPED_COUNT])
 
         # Target layer remains untouched
@@ -107,7 +107,7 @@ class TestParameterErrors(unittest.TestCase):
 
         self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
         self.assertIsNone(res[APPENDED_COUNT])
-        self.assertIsNone(res[UPDATED_COUNT])
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])
         self.assertIsNone(res[SKIPPED_COUNT])
 
         self.assertEqual(layer.featureCount(), 2)
