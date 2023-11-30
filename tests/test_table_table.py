@@ -13,7 +13,7 @@ import processing
 from tests.utils import (CommonTests,
                          get_qgis_gpkg_layer,
                          APPENDED_COUNT,
-                         UPDATED_COUNT,
+                         UPDATED_FEATURE_COUNT,
                          SKIPPED_COUNT)
 
 start_app()
@@ -89,7 +89,7 @@ class TestTableTable(unittest.TestCase):
 
         self.assertEqual(layer.featureCount(), 4)
         self.assertEqual(res[APPENDED_COUNT], 0)
-        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 4)
 
         # And counts for update action
@@ -102,7 +102,7 @@ class TestTableTable(unittest.TestCase):
 
         self.assertEqual(layer.featureCount(), 4)
         self.assertEqual(res[APPENDED_COUNT], 0)
-        self.assertEqual(res[UPDATED_COUNT], 4)
+        self.assertEqual(res[UPDATED_FEATURE_COUNT], 4)
         self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
 
     def test_skip_update_m_1(self):
@@ -131,7 +131,7 @@ class TestTableTable(unittest.TestCase):
 
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 0)
-        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 2)
 
         # And counts for update action
@@ -144,7 +144,7 @@ class TestTableTable(unittest.TestCase):
 
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 0)
-        self.assertEqual(res[UPDATED_COUNT], 1)  # We do 2 updates on a single feature, the count is 1!
+        self.assertEqual(res[UPDATED_FEATURE_COUNT], 1)  # We do 2 updates on a single feature, the count is 1!
         self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
 
     def test_skip_different_field_types_can_convert(self):
@@ -177,7 +177,7 @@ class TestTableTable(unittest.TestCase):
 
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 1)
-        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 1)
 
         # Now test the reverse
@@ -207,7 +207,7 @@ class TestTableTable(unittest.TestCase):
 
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 1)
-        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 1)
 
     def test_skip_different_field_types_cannot_convert(self):
@@ -237,7 +237,7 @@ class TestTableTable(unittest.TestCase):
 
         self.assertEqual(layer.featureCount(), 3)
         self.assertEqual(res[APPENDED_COUNT], 2)
-        self.assertIsNone(res[UPDATED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 0)
 
     @classmethod
