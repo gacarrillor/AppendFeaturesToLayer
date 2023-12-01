@@ -193,6 +193,11 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 return results
 
         if action_on_duplicate == self.UPDATE_EXISTING_GEOMETRY:
+            if QgsWkbTypes.geometryType(source.wkbType()) == QgsWkbTypes.NullGeometry:
+                feedback.reportError(
+                    "\nWARNING: The source layer is not spatial! Choose another action for duplicate features or choose another source layer.")
+                return results
+
             if not target.isSpatial():
                 feedback.reportError(
                     "\nWARNING: The target layer is not spatial! Choose another action for duplicate features or choose another target layer.")

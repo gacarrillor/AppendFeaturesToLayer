@@ -114,7 +114,29 @@ class TestParameterErrors(unittest.TestCase):
 
         self.assertEqual(layer.featureCount(), 2)
 
-    def test_dont_only_update_geometries_when_layer_is_not_spatial(self):
+    def test_dont_only_update_geometries_when_source_layer_is_not_spatial(self):
+        print('\nINFO: Validating (only) geometries cannot be updated if source layer is non-spatial...')
+
+        output_layer, layer_path = get_qgis_gpkg_layer('target_simple_polygons')
+        input_layer_path = "{}|layername={}".format(layer_path, 'source_table')
+        input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+
+        res = processing.run("etl_load:appendfeaturestolayer",
+                       {'SOURCE_LAYER': input_layer,
+                        'SOURCE_FIELD': 'name',
+                        'TARGET_LAYER': output_layer,
+                        'TARGET_FIELD': 'name',
+                        'ACTION_ON_DUPLICATE': 3})  # Only update geometries
+
+        self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res[APPENDED_COUNT])
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        self.assertEqual(output_layer.featureCount(), 0)
+
+    def test_dont_only_update_geometries_when_target_layer_is_not_spatial(self):
         print('\nINFO: Validating (only) geometries cannot be updated if target layer is non-spatial...')
 
         output_layer, layer_path = get_qgis_gpkg_layer('target_table')
