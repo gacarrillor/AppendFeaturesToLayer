@@ -11,9 +11,11 @@ from qgis.testing.mocked import get_iface
 import processing
 
 from tests.utils import (get_test_file_copy_path,
+                         get_qgis_gpkg_layer,
                          APPENDED_COUNT,
                          SKIPPED_COUNT,
-                         UPDATED_FEATURE_COUNT)
+                         UPDATED_FEATURE_COUNT,
+                         UPDATED_ONLY_GEOMETRY_COUNT)
 
 start_app()
 
@@ -21,11 +23,11 @@ start_app()
 class TestParameterErrors(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         print('\nINFO: Set up test_parameter_errors')
         from AppendFeaturesToLayer.append_features_to_layer_plugin import AppendFeaturesToLayerPlugin
-        self.plugin = AppendFeaturesToLayerPlugin(get_iface)
-        self.plugin.initGui()
+        cls.plugin = AppendFeaturesToLayerPlugin(get_iface)
+        cls.plugin.initGui()
 
     def test_fields_no_on_duplicate(self):
         print('\nINFO: Validating fields with no on_duplicate option...')
@@ -111,6 +113,28 @@ class TestParameterErrors(unittest.TestCase):
         self.assertIsNone(res[SKIPPED_COUNT])
 
         self.assertEqual(layer.featureCount(), 2)
+
+    def test_dont_only_update_geometries_when_layer_is_not_spatial(self):
+        print('\nINFO: Validating (only) geometries cannot be updated if target layer is non-spatial...')
+
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        input_layer_path = "{}|layername={}".format(layer_path, 'source_simple_polygons')
+        input_layer = QgsVectorLayer(input_layer_path, 'layer name', 'ogr')
+
+        res = processing.run("etl_load:appendfeaturestolayer",
+                       {'SOURCE_LAYER': input_layer,
+                        'SOURCE_FIELD': 'name',
+                        'TARGET_LAYER': output_layer,
+                        'TARGET_FIELD': 'name',
+                        'ACTION_ON_DUPLICATE': 3})  # Only update geometries
+
+        self.assertIsNone(res['TARGET_LAYER'])  # The algorithm doesn't run, and doesn't give an output
+        self.assertIsNone(res[APPENDED_COUNT])
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        self.assertEqual(output_layer.featureCount(), 0)
 
     @classmethod
     def tearDownClass(self):
