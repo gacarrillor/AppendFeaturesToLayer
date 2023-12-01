@@ -40,7 +40,11 @@ QGIS v3 plugin that adds a new Processing algorithm to append/update features fr
 
  4. **Update existing features in an existing (`target`) layer based on a `source` layer**.
 
-    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can **update** the existing feature's geometry/attributes based on the new feature, instead of appending it. In other words, the algorithm performs an **Upsert** (Update or Insert a feature). You can find more details below.
+    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can **update** the existing feature's geometry/attributes based on the source feature, instead of appending it. In other words, the algorithm performs an **Upsert** (Update or Insert a feature). You can find more details in the next section of this document.
+
+ 5. **Update existing geometries in a (`target`) layer based on geometries from a `source` layer**.
+
+    The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can **update** the existing feature's geometry (leaving all feature attributes intact) based on the source feature's geometry, instead of appending it. In other words, the algorithm performs an **Upsert** (Update a geometry or Insert a feature). You can find more details in the next section of this document.
 
 
 ### 🛠️ How does it work
@@ -53,11 +57,12 @@ Geometry conversion is done on the fly, if required by the `target` layer. For i
 
 **How the algorithm deals with duplicates**
 
-This algorithm allows you to choose a field in `source` and `target` layers to compare and detect duplicates. It has 3 modes of operation: 
+This algorithm allows you to choose a field in `source` and `target` layers to compare and detect duplicates. It has 4 modes of operation:
 
   1) APPEND new feature, regardless of duplicates.
   2) SKIP new feature if duplicate is found.
-  3) UPDATE the feature in `target` layer with attributes (including geometry) from the feature in the `source` layer.
+  3) UPDATE EXISTING FEATURE in `target` layer with attributes (including geometry) from the feature in the `source` layer.
+  4) ONLY UPDATE EXISTING FEATURE's GEOMETRY in `target` layer (leaving its attributes intact) based on the feature's geometry in the `source` layer.
 
 **Note on Primary Keys**
 
@@ -70,11 +75,11 @@ The algorithm deals with target layer's Primary Keys in this way:
 
 **Note on geometry updates**
 
-Mode UPDATE:
+Mode UPDATE EXISTING FEATURE:
   + If target layer has geometries but input layer does not, then only attributes will be updated when a duplicate feature is found, i.e., the geometry in target layer will remain untouched.
 
-### 🔎 Where to find the algorithm
 
+### 🔎 Where to find the algorithm
 
 Once installed and activated, this plugin adds a new provider (`ETL_LOAD`) to QGIS Processing.
 You can find the `Append Features to Layer` algorithm in the Processing Toolbox, under `ETL_LOAD -> Vector table -> Append features to layer`.
@@ -134,6 +139,7 @@ result = processing.run("etl_load:appendfeaturestolayer",
                          'ACTION_ON_DUPLICATE': 0})  # NO_ACTION: 0
                                                      # SKIP_FEATURE: 1
                                                      # UPDATE_EXISTING_FEATURE: 2
+                                                     # ONLY_UPDATE_EXISTING_FEATURES_GEOMETRY: 3
 ```
 
 ### ⚙️ Using Append Features to Layer via QGIS Process
@@ -142,7 +148,7 @@ If you'd like to run the plugin without GUI, but don't want to deal with PyQGIS 
 
 ```$ qgis_process run "etl_load:appendfeaturestolayer" -- SOURCE_LAYER=/tmp/source.shp TARGET_LAYER=/tmp/target.shp ACTION_ON_DUPLICATE=0```
 
-Where `NO_ACTION`: 0, `SKIP_FEATURE`: 1, `UPDATE_EXISTING_FEATURE`: 2
+Where `NO_ACTION`: 0, `SKIP_FEATURE`: 1, `UPDATE_EXISTING_FEATURE`: 2, `ONLY_UPDATE_EXISTING_FEATURES_GEOMETRY`: 3
 
 Make sure the plugin can be found in your QGIS plugins folder, that is, that you have installed the plugin in your QGIS.
 
@@ -161,4 +167,3 @@ After that, you could run unit tests locally with this command:
 You could rebuild the Docker image in this way:
 
     docker-compose -f .docker/docker-compose.yml down --rmi local && docker-compose -f .docker/docker-compose.yml build
-
