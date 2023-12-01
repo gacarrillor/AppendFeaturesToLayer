@@ -19,6 +19,7 @@ from qgis.testing.mocked import get_iface
 
 APPENDED_COUNT = 'APPENDED_COUNT'
 UPDATED_FEATURE_COUNT = 'UPDATED_FEATURE_COUNT'
+UPDATED_ONLY_GEOMETRY_COUNT = 'UPDATED_ONLY_GEOMETRY_COUNT'
 SKIPPED_COUNT = 'SKIPPED_COUNT'
 
 PG_BD_1 = "db1"
@@ -174,6 +175,7 @@ def drop_all_tables(db=PG_BD_1):
 
 def get_qgis_gpkg_layer(layer_name, layer_path=None):
     if layer_path is None:
+        # Get the layer from a DB copy
         layer_path = get_test_file_copy_path('insert_features_to_layer_test.gpkg')
 
     return QgsVectorLayer("{}|layername={}".format(layer_path, layer_name), "", "ogr"), layer_path
