@@ -121,16 +121,16 @@ def prepare_pg_db_1():
     if conn:
         cur = conn.cursor()
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS target_table(id serial NOT NULL, name text, real_value double precision, date_value timestamp, exra_value text);
+            CREATE TABLE IF NOT EXISTS target_table(id serial NOT NULL, name text, real_value double precision, date_value date, exra_value text);
             ALTER TABLE target_table ADD CONSTRAINT pk_target_table PRIMARY KEY (id);
 
             CREATE TABLE IF NOT EXISTS target_simple_lines(id serial NOT NULL, geom geometry(Linestring,3116) NULL, name text);
             ALTER TABLE target_simple_lines ADD CONSTRAINT pk_target_simple_lines PRIMARY KEY (id);
 
-            CREATE TABLE IF NOT EXISTS target_simple_polygons(id serial NOT NULL, geom geometry(Polygon,3116) NULL, name text, real_value double precision, date_value timestamp, exra_value text);
+            CREATE TABLE IF NOT EXISTS target_simple_polygons(id serial NOT NULL, geom geometry(Polygon,3116) NULL, name text, real_value double precision, date_value date, exra_value text);
             ALTER TABLE target_simple_polygons ADD CONSTRAINT pk_target_simple_polygons PRIMARY KEY (id);
 
-            CREATE TABLE IF NOT EXISTS target_multi_polygons(id serial NOT NULL, geom geometry(MultiPolygon,3116) NULL, name text, real_value double precision, date_value timestamp, exra_value text);
+            CREATE TABLE IF NOT EXISTS target_multi_polygons(id serial NOT NULL, geom geometry(MultiPolygon,3116) NULL, name text, real_value double precision, date_value date, exra_value text);
             ALTER TABLE target_multi_polygons ADD CONSTRAINT pk_target_multi_polygons PRIMARY KEY (id);
 
             CREATE TABLE IF NOT EXISTS tipo_regla("T_Id" serial NOT NULL, codigo text, descripcion text);

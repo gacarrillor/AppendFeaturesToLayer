@@ -76,7 +76,7 @@ class TestSimplePolySimplePoly(unittest.TestCase):
         geom = QgsGeometry()
         attrs = {0: 2,
                  1: 'DEF',
-                 2: 20,
+                 2: 20.0,
                  3: QDate(84,2,19),
                  4: '0.1234'}
         new_feature = QgsVectorLayerUtils().createFeature(output_layer, geom, attrs)
@@ -103,7 +103,7 @@ class TestSimplePolySimplePoly(unittest.TestCase):
         self.assertEqual(feature.geometry().asWkt(), new_wkt)
 
         # Attrs should be intact
-        old_attrs = [2, 'DEF', 20, QDate(84, 2, 19), '0.1234']
+        old_attrs = [2, 'DEF', 20.0, QDate(84, 2, 19), '0.1234']
         self.assertEqual(feature.attributes(), old_attrs)
 
     @classmethod
