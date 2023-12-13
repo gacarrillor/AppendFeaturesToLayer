@@ -1,10 +1,12 @@
 import nose2
 
+from qgis.PyQt.QtCore import QVariant
 from qgis.core import (QgsApplication,
                        QgsVectorLayer,
                        QgsProcessingFeatureSourceDefinition,
                        QgsProject,
-                       QgsFeature)
+                       QgsFeature,
+                       QgsField)
 from qgis.testing import unittest, start_app
 from qgis.testing.mocked import get_iface
 
@@ -14,7 +16,10 @@ from tests.utils import (CommonTests,
                          get_qgis_gpkg_layer,
                          APPENDED_COUNT,
                          UPDATED_FEATURE_COUNT,
-                         SKIPPED_COUNT)
+                         SKIPPED_COUNT,
+                         UPDATED_ONLY_GEOMETRY_COUNT,
+                         JSON_VALUE_1,
+                         JSON_VALUE_2)
 
 start_app()
 
@@ -36,6 +41,38 @@ class TestTableTable(unittest.TestCase):
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
+
+    def test_copy_all_json_to_json(self):
+        print('\nINFO: Validating table-table copy&paste all (JSON to JSON)...')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        res = self.common._test_copy_all('source_table', output_layer, layer_path)
+        layer = res['TARGET_LAYER']
+        self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+
+        expected_json_values = {'abc' : JSON_VALUE_1, 'def': JSON_VALUE_2}
+
+        for f in layer.getFeatures():
+            self.assertEqual(f['json_value'], expected_json_values[f['name']])
+
+    def test_copy_all_string_to_json(self):
+        print('\nINFO: Validating table-table copy&paste all (STRING to JSON)...')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+
+        # Add a JSON field named text_value to match the source layer's (string)
+        # field name from which we'd like to get JSON values
+        output_layer.dataProvider().addAttributes([QgsField("text_value", QVariant.Map)])
+        output_layer.updateFields()
+
+        res = self.common._test_copy_all('source_table', output_layer, layer_path)
+        layer = res['TARGET_LAYER']
+        self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+
+        expected_json_values = {'abc' : JSON_VALUE_1, 'def': JSON_VALUE_2}
+
+        for f in layer.getFeatures():
+            self.assertEqual(f['text_value'], expected_json_values[f['name']])
 
     def test_copy_selected(self):
         print('\nINFO: Validating table-table copy&paste selected...')
@@ -91,6 +128,7 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 0)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 4)
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         # And counts for update action
         res = processing.run("etl_load:appendfeaturestolayer",
@@ -104,6 +142,7 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 0)
         self.assertEqual(res[UPDATED_FEATURE_COUNT], 4)
         self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
     def test_skip_update_m_1(self):
         print('\nINFO: Validating table-table skip/update m:1...')
@@ -133,6 +172,7 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 0)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         # And counts for update action
         res = processing.run("etl_load:appendfeaturestolayer",
@@ -146,6 +186,7 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 0)
         self.assertEqual(res[UPDATED_FEATURE_COUNT], 1)  # We do 2 updates on a single feature, the count is 1!
         self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
     def test_skip_different_field_types_can_convert(self):
         print('\nINFO: Validating table-table skip different field types can convert...')
@@ -179,6 +220,7 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 1)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 1)
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         # Now test the reverse
         output_layer, layer_path = get_qgis_gpkg_layer('target_table')
@@ -209,6 +251,7 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 1)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 1)
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
     def test_skip_different_field_types_cannot_convert(self):
         print('\nINFO: Validating table-table skip different field types cannot convert...')
@@ -239,6 +282,7 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 0)
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
     @classmethod
     def tearDownClass(self):

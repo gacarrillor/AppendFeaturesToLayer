@@ -26,14 +26,8 @@ PG_BD_1 = "db1"
 
 TEST_DIR = tempfile.mkdtemp()  # To send all temporal copies there
 
-
-# def get_iface():
-#     global iface
-#
-#     def rewrite_method():
-#         return "I'm rewritten"
-#     iface.rewrite_method = rewrite_method
-#     return iface
+JSON_VALUE_1 = [{"abc": 12.2, "def": True}, {"abc": "ABC", "def": -2}]
+JSON_VALUE_2 = {"c": "def"}
 
 
 def get_test_path(path):
@@ -208,6 +202,7 @@ class CommonTests(unittest.TestCase):
         self.assertTrue(output_layer.isValid())
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
         return res
 
     def _test_copy_selected(self, input_layer_name, output_layer, input_layer_path=None, select_id=1):
@@ -233,6 +228,7 @@ class CommonTests(unittest.TestCase):
 
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         return res
 
@@ -260,6 +256,7 @@ class CommonTests(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         # Let's modify values in the input layer to attempt to update later in the output via our plugin
         input_layer.dataProvider().changeAttributeValues({1: {3: 30}})  # real_value --> 30
@@ -280,6 +277,7 @@ class CommonTests(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 1)
         self.assertEqual(res[UPDATED_FEATURE_COUNT], 2)
         self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         feature = next(output_layer.getFeatures('"name"=\'abc\''))
         self.assertEqual(feature['real_value'], 30)
@@ -311,6 +309,7 @@ class CommonTests(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         # Let's modify values in the input layer to be able to check that
         # these new values are never transfererd to the output layer
@@ -328,6 +327,7 @@ class CommonTests(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 0)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         feature = next(output_layer.getFeatures('"name"=\'abc\''))
         self.assertTrue(real_values_are_equal(feature['real_value'], 3.1416, 5))
@@ -359,6 +359,7 @@ class CommonTests(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         # Let's modify values in the input layer to be able to check that
         # these new values are never transferred to the output layer
@@ -380,6 +381,7 @@ class CommonTests(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 1)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 2)
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         feature = next(output_layer.getFeatures('"name"=\'abc\''))
         self.assertTrue(real_values_are_equal(feature['real_value'], 3.1416, 5))
@@ -410,6 +412,7 @@ class CommonTests(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # These are None because ACTION_ON_DUPLICATE is None
         self.assertIsNone(res[SKIPPED_COUNT])
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
 
         # Let's modify values in the input layer to make them unmatchable
         # and thus, be able to test a skip none scenario (i.e., no duplicates found)
@@ -427,3 +430,4 @@ class CommonTests(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 2)
         self.assertIsNone(res[UPDATED_FEATURE_COUNT])  # This is None because ACTION_ON_DUPLICATE is Skip
         self.assertEqual(res[SKIPPED_COUNT], 0)  # Input features not found in target
+        self.assertIsNone(res[UPDATED_ONLY_GEOMETRY_COUNT])
