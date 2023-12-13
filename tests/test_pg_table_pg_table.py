@@ -11,6 +11,7 @@ from qgis.testing.mocked import get_iface
 import processing
 
 from tests.utils import (CommonTests,
+                         get_pg_conn,
                          get_qgis_pg_layer,
                          get_qgis_gpkg_layer,
                          get_test_file_copy_path,
@@ -20,7 +21,9 @@ from tests.utils import (CommonTests,
                          UPDATED_FEATURE_COUNT,
                          SKIPPED_COUNT,
                          drop_all_tables,
-                         truncate_table)
+                         truncate_table,
+                         JSON_VALUE_1,
+                         JSON_VALUE_2)
 
 start_app()
 
@@ -37,7 +40,7 @@ class TestPGTablePGTable(unittest.TestCase):
         prepare_pg_db_1()
 
     def test_copy_all(self):
-        print('\nINFO: Validating pg table - pg table copy&paste all...')
+        print('\nINFO: Validating gpkg table - pg table copy&paste all...')
         pg_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
         self.assertTrue(pg_layer.isValid())
         self.assertEqual(pg_layer.featureCount(), 0)
@@ -47,8 +50,32 @@ class TestPGTablePGTable(unittest.TestCase):
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
 
+    def test_copy_all_string_to_json(self):
+        print('\nINFO: Validating gpkg table - pg table copy&paste all (String to JSON)...')
+        conn = get_pg_conn(PG_BD_1)
+        self.assertIsNotNone(conn)
+        cur = conn.cursor()
+        cur.execute("""ALTER TABLE target_table ADD COLUMN text_value JSON;""")
+        cur.close()
+        conn.commit()
+
+        pg_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
+        self.assertTrue(pg_layer.isValid())
+        self.assertEqual(pg_layer.featureCount(), 0)
+        self.assertTrue(pg_layer.fields().indexOf("text_value") != -1)
+
+        res = self.common._test_copy_all('source_table', pg_layer)
+        layer = res['TARGET_LAYER']
+        self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+
+        expected_json_values = {'abc': JSON_VALUE_1, 'def': JSON_VALUE_2}
+
+        for f in layer.getFeatures():
+            self.assertEqual(f['text_value'], expected_json_values[f['name']])
+
     def test_copy_selected(self):
-        print('\nINFO: Validating pg table - pg table copy&paste selected...')
+        print('\nINFO: Validating gpkg table - pg table copy&paste selected...')
         res = self.common._test_copy_selected('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
         layer = res['TARGET_LAYER']
 
@@ -56,24 +83,24 @@ class TestPGTablePGTable(unittest.TestCase):
         self.assertEqual(res[APPENDED_COUNT], 1)
 
     def test_update(self):
-        print('\nINFO: Validating pg table - pg table update...')
+        print('\nINFO: Validating gpkg table - pg table update...')
         # Test for issue #10 (ChangeGeometries is False, but ChangeAttributeValues is True for target_table)
         self.common._test_update('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
 
     def test_skip_all(self):
-        print('\nINFO: Validating pg table - pg table skip (all) duplicate features...')
+        print('\nINFO: Validating gpkg table - pg table skip (all) duplicate features...')
         self.common._test_skip_all('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
 
     def test_skip_some(self):
-        print('\nINFO: Validating pg table - pg table skip (some) duplicate features...')
+        print('\nINFO: Validating gpkg table - pg table skip (some) duplicate features...')
         self.common._test_skip_some('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
 
     def test_skip_none(self):
-        print('\nINFO: Validating pg table - pg table skip (none) duplicate features...')
+        print('\nINFO: Validating gpkg table - pg table skip (none) duplicate features...')
         self.common._test_skip_none('source_table', get_qgis_pg_layer(PG_BD_1, 'target_table'))
 
     def test_skip_update_1_m(self):
-        print('\nINFO: Validating pg table - pg table skip/update 1:m...')
+        print('\nINFO: Validating gpkg table - pg table skip/update 1:m...')
         # Let's copy twice the same 2 features to end up with 1:m (twice)
         output_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
         self.common._test_copy_all('source_table', output_layer)
@@ -110,7 +137,7 @@ class TestPGTablePGTable(unittest.TestCase):
         self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
 
     def test_skip_update_m_1(self):
-        print('\nINFO: Validating pg table - pg table skip/update m:1...')
+        print('\nINFO: Validating gpkg table - pg table skip/update m:1...')
         output_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
         res = self.common._test_copy_all('source_table', output_layer)
 
@@ -149,7 +176,7 @@ class TestPGTablePGTable(unittest.TestCase):
         self.assertIsNone(res[SKIPPED_COUNT])  # This is None because ACTION_ON_DUPLICATE is Update
 
     def test_skip_different_field_types_can_convert(self):
-        print('\nINFO: Validating pg table - pg table skip different field types can convert...')
+        print('\nINFO: Validating gpkg table - pg table skip different field types can convert...')
 
         output_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
         input_layer, input_layer_path = get_qgis_gpkg_layer('source_table')
@@ -210,7 +237,7 @@ class TestPGTablePGTable(unittest.TestCase):
         self.assertEqual(res[SKIPPED_COUNT], 1)
 
     def test_skip_different_field_types_cannot_convert(self):
-        print('\nINFO: Validating pg table - pg table skip different field types cannot convert...')
+        print('\nINFO: Validating gpkg table - pg table skip different field types cannot convert...')
 
         # Since it can't convert between types (and since types are different), no duplicates can be found, so
         # everything is appended.
