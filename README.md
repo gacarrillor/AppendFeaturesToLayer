@@ -26,7 +26,7 @@ QGIS v3 plugin that adds a new Processing algorithm to append/update features fr
 
     In fact, the algorithm is based on the `Paste` tool that QGIS offers in its main user interface, enabling you to use it in your Processing workflows. 
 
- 2. **ETL (Extract, Transform and Load)**: (See [example](#examples) number 2)
+ 2. **ETL (Extract, Transform and Load)**: (See [example](#-examples) number 2)
     
     The `Append Features to Layer` algorithm acts as the 'Load' in an ETL operation. If you need to 'Transform' your features before using the 'Load', QGIS offers the `Refactor fields` algorithm. 
     
@@ -42,7 +42,7 @@ QGIS v3 plugin that adds a new Processing algorithm to append/update features fr
 
     The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can **update** the existing feature's geometry/attributes based on the source feature, instead of appending it. In other words, the algorithm performs an **Upsert** (Update or Insert a feature). You can find more details in the next section of this document.
 
- 5. **Update existing geometries in a (`target`) layer based on geometries from a `source` layer**.
+ 5. **Update existing geometries in a (`target`) layer based on geometries from a `source` layer**. 🆕
 
     The `Append Features to Layer` algorithm can search for duplicates while copying features from `source` to `target` layers. If duplicates are found, the algorithm can **update** the existing feature's geometry (leaving all feature attributes intact) based on the source feature's geometry, instead of appending it. In other words, the algorithm performs an **Upsert** (Update a geometry or Insert a feature). You can find more details in the next section of this document.
 
@@ -84,7 +84,8 @@ Mode UPDATE EXISTING FEATURE:
 Once installed and activated, this plugin adds a new provider (`ETL_LOAD`) to QGIS Processing.
 You can find the `Append Features to Layer` algorithm in the Processing Toolbox, under `ETL_LOAD -> Vector table -> Append features to layer`.
 
-![Algorithm][1]
+![image](https://github.com/gacarrillor/AppendFeaturesToLayer/assets/652785/1d9cda0b-eccd-4c12-8ed3-511e47c576fc)
+
 
 ### 📝 Examples
 
