@@ -50,6 +50,30 @@ class TestPGTablePGTable(unittest.TestCase):
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
 
+    def _test_copy_all_json_to_json(self):
+        print('\nINFO: Validating gpkg table - pg table copy&paste all (JSON to JSON)...')
+        conn = get_pg_conn(PG_BD_1)
+        self.assertIsNotNone(conn)
+        cur = conn.cursor()
+        cur.execute("""ALTER TABLE target_table ADD COLUMN json_value JSON;""")
+        cur.close()
+        conn.commit()
+
+        pg_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
+        self.assertTrue(pg_layer.isValid())
+        self.assertEqual(pg_layer.featureCount(), 0)
+        self.assertTrue(pg_layer.fields().indexOf("json_value") != -1)
+
+        res = self.common._test_copy_all('source_table', pg_layer)
+        layer = res['TARGET_LAYER']
+        self.assertEqual(layer.featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 2)
+
+        expected_json_values = {'abc': JSON_VALUE_1, 'def': JSON_VALUE_2}
+
+        for f in layer.getFeatures():
+            self.assertEqual(f['json_value'], expected_json_values[f['name']])
+
     def test_copy_all_string_to_json(self):
         print('\nINFO: Validating gpkg table - pg table copy&paste all (String to JSON)...')
         conn = get_pg_conn(PG_BD_1)
