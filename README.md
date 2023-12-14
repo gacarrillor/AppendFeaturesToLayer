@@ -158,7 +158,7 @@ Make sure the plugin can be found in your QGIS plugins folder, that is, that you
 First, you need to set 2 environment variables:
 
     export GITHUB_WORKSPACE=/path/to/AppendFeaturesToLayer/
-    export QGIS_TEST_VERSION="final-3_28_9"
+    export QGIS_TEST_VERSION="final-3_28_13"
 
 After that, you could run unit tests locally with this command:
 
