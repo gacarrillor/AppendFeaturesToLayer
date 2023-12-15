@@ -143,6 +143,15 @@ result = processing.run("etl_load:appendfeaturestolayer",
                                                      # ONLY_UPDATE_EXISTING_FEATURES_GEOMETRY: 3
 ```
 
+The algorithm outputs are:
+
+ + `TARGET_LAYER`
+ + `APPENDED_COUNT`
+ + `SKIPPED_COUNT`
+ + `UPDATED_FEATURE_COUNT`
+ + `UPDATED_ONLY_GEOMETRY_COUNT` :new: 
+
+
 ### ⚙️ Using Append Features to Layer via QGIS Process
 
 If you'd like to run the plugin without GUI, but don't want to deal with PyQGIS scripts, you can use QGIS Process. You run QGIS Process from the operating system's terminal, in this way:
