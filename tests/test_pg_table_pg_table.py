@@ -62,7 +62,7 @@ class TestPGTablePGTable(unittest.TestCase):
         self.assertEqual(pg_layer.featureCount(), 0)
         self.assertTrue(pg_layer.fields().indexOf("json_value") != -1)
 
-        res = self.common._test_copy_all('source_table', pg_layer)
+        res = self.common._test_copy_all('source_table', pg_layer)  # This is failing --> QGIS bug
         layer = res['TARGET_LAYER']
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
@@ -71,6 +71,46 @@ class TestPGTablePGTable(unittest.TestCase):
 
         for f in layer.getFeatures():
             self.assertEqual(f['json_value'], expected_json_values[f['name']])
+
+        # We don't necessarily want the JSON_field populated in other tests
+        # Specially, because of a bug in QGIS when pasting multiple features (JSON to JSON)
+        # So, remove the just created JSON field after this specific test
+        cur = conn.cursor()
+        cur.execute("""ALTER TABLE target_table DROP COLUMN json_value;""")
+        cur.close()
+        conn.commit()
+
+    def test_copy_selected_json_to_json(self):
+        print('\nINFO: Validating gpkg table - pg table copy&paste selected (JSON to JSON)...')
+        conn = get_pg_conn(PG_BD_1)
+        self.assertIsNotNone(conn)
+        cur = conn.cursor()
+        cur.execute("""ALTER TABLE target_table ADD COLUMN json_value JSON;""")
+        cur.close()
+        conn.commit()
+
+        pg_layer = get_qgis_pg_layer(PG_BD_1, 'target_table')
+        self.assertTrue(pg_layer.isValid())
+        self.assertEqual(pg_layer.featureCount(), 0)
+        self.assertTrue(pg_layer.fields().indexOf("json_value") != -1)
+
+        res = self.common._test_copy_selected('source_table', pg_layer)
+        layer = res['TARGET_LAYER']
+        self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+
+        expected_json_values = {'abc': JSON_VALUE_1, 'def': JSON_VALUE_2}
+
+        for f in layer.getFeatures():
+            self.assertEqual(f['json_value'], expected_json_values[f['name']])
+
+        # We don't necessarily want the JSON_field populated in other tests
+        # Specially, because of a bug in QGIS when pasting multiple features (JSON to JSON)
+        # So, remove the just created JSON field after this specific test
+        cur = conn.cursor()
+        cur.execute("""ALTER TABLE target_table DROP COLUMN json_value;""")
+        cur.close()
+        conn.commit()
 
     def test_copy_all_string_to_json(self):
         print('\nINFO: Validating gpkg table - pg table copy&paste all (String to JSON)...')
