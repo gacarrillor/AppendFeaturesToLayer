@@ -40,6 +40,19 @@ class TestTableTable(unittest.TestCase):
         self.assertEqual(layer.featureCount(), 2)
         self.assertEqual(res[APPENDED_COUNT], 2)
 
+    def test_copy_selected_json_to_json(self):
+        print('\nINFO: Validating table-table copy&paste selected (JSON to JSON)...')
+        output_layer, layer_path = get_qgis_gpkg_layer('target_table')
+        res = self.common._test_copy_selected('source_table', output_layer, layer_path)
+        layer = res['TARGET_LAYER']
+        self.assertEqual(layer.featureCount(), 1)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+
+        expected_json_values = {'abc' : JSON_VALUE_1, 'def': JSON_VALUE_2}
+
+        for f in layer.getFeatures():
+            self.assertEqual(f['json_value'], expected_json_values[f['name']])
+
     def test_copy_all_json_to_json(self):
         print('\nINFO: Validating table-table copy&paste all (JSON to JSON)...')
         output_layer, layer_path = get_qgis_gpkg_layer('target_table')
