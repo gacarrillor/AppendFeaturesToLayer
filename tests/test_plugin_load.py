@@ -1,5 +1,3 @@
-import nose2
-
 from qgis.core import QgsApplication
 from qgis.testing import unittest, start_app
 from qgis.testing.mocked import get_iface
@@ -25,7 +23,3 @@ class TestPluginLoad(unittest.TestCase):
     def tearDownClass(cls):
         print('INFO: Tear down test_plugin_load')
         cls.plugin.unload()
-
-
-if __name__ == '__main__':
-    nose2.main()

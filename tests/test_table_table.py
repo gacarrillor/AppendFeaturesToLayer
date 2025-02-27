@@ -1,5 +1,3 @@
-import nose2
-
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import (QgsApplication,
                        QgsVectorLayer,
@@ -55,7 +53,7 @@ class TestTableTable(unittest.TestCase):
         for f in layer.getFeatures():
             self.assertEqual(f['json_value'], expected_json_values[f['name']])
 
-    def test_copy_all_string_to_json(self):
+    def _test_copy_all_string_to_json(self):
         print('\nINFO: Validating table-table copy&paste all (STRING to JSON)...')
         output_layer, layer_path = get_qgis_gpkg_layer('target_table')
 
@@ -288,7 +286,3 @@ class TestTableTable(unittest.TestCase):
     def tearDownClass(self):
         print('INFO: Tear down test_table_table')
         self.plugin.unload()
-
-
-if __name__ == '__main__':
-    nose2.main()

@@ -1,5 +1,3 @@
-import nose2
-
 from qgis.core import (QgsApplication,
                        QgsVectorLayer,
                        QgsProcessingFeatureSourceDefinition,
@@ -295,7 +293,3 @@ class TestPGTablePGTable(unittest.TestCase):
         print('INFO: Tear down test_pg_table_pg_table')
         drop_all_tables()
         cls.plugin.unload()
-
-
-if __name__ == '__main__':
-    nose2.main()

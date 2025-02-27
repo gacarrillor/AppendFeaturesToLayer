@@ -13,7 +13,7 @@ done
 printf "\nPostgreSQL ready!\n"
 
 pushd /usr/src/
-xvfb-run nose2-3
+xvfb-run pytest
 #xvfb-run nose2-3 tests.test_pk
 #xvfb-run nose2-3 tests.test_table_table
 #xvfb-run nose2-3 tests.test_pg_table_pg_table

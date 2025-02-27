@@ -1,5 +1,3 @@
-import nose2
-
 from qgis.testing import unittest, start_app
 from qgis.testing.mocked import get_iface
 
@@ -56,7 +54,3 @@ class TestPGSimplePolySimpleLine(unittest.TestCase):
         print('INFO: Tear down pg simple_pol-simple_lin')
         drop_all_tables()
         cls.plugin.unload()
-
-
-if __name__ == '__main__':
-    nose2.main()
