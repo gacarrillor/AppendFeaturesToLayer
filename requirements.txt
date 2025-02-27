@@ -1,1 +1,1 @@
-nose2
+pytest

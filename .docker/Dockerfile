@@ -8,7 +8,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 COPY ./requirements.txt /tmp/
-RUN pip3 install -r /tmp/requirements.txt
+RUN pip3 install -r /tmp/requirements.txt || pip3 install -r /tmp/requirements.txt --break-system-packages
 
 COPY ./ /usr/src/
 

@@ -1,5 +1,3 @@
-import nose2
-
 from qgis.PyQt.QtCore import QDate
 from qgis.core import (QgsVectorLayerUtils,
                        QgsGeometry,
@@ -110,7 +108,3 @@ class TestSimplePolySimplePoly(unittest.TestCase):
     def tearDownClass(self):
         print('INFO: Tear down simple_pol-simple_pol')
         self.plugin.unload()
-
-
-if __name__ == '__main__':
-    nose2.main()

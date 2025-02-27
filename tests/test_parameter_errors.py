@@ -1,5 +1,3 @@
-import nose2
-
 from qgis.core import (QgsApplication,
                        QgsVectorLayer,
                        QgsProcessingFeatureSourceDefinition,
@@ -162,7 +160,3 @@ class TestParameterErrors(unittest.TestCase):
     def tearDownClass(self):
         print('INFO: Tear down test_parameter_errors')
         self.plugin.unload()
-
-
-if __name__ == '__main__':
-    nose2.main()
