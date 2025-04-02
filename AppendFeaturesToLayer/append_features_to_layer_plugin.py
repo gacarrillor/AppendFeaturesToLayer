@@ -79,8 +79,6 @@ class AppendFeaturesToLayerPlugin:
             if not alg.fromFile(filename):
                 print("ERROR: Couldn't load model from {}".format(filename))
                 return
-
-            destFilename = os.path.join(ModelerUtils.modelsFolders()[0], os.path.basename(filename))
-            shutil.copyfile(filename, destFilename)
-
-        QgsApplication.processingRegistry().providerById('model').refreshAlgorithms()
+            alg_added = self.provider.addAlgorithm(alg)
+            if not alg_added:
+                print("ERROR: Couldn't add algorithm from model {}".format(filename))
