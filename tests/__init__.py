@@ -1,7 +1,6 @@
 import qgis.core
 from qgis.PyQt.sip import SIP_VERSION_STR
-from qgis.PyQt.QtCore import QT_VERSION_STR
-from qgis.PyQt.Qt import PYQT_VERSION_STR
+from qgis.PyQt.QtCore import QT_VERSION_STR, PYQT_VERSION_STR
 from qgis.core import Qgis
 
 print("# # # # # # # # # # # # # # #")
