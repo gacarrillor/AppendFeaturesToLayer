@@ -72,7 +72,7 @@ class TestTableTable(unittest.TestCase):
 
         # Add a JSON field named text_value to match the source layer's (string)
         # field name from which we'd like to get JSON values
-        output_layer.dataProvider().addAttributes([QgsField("text_value", QVariant.Map)])
+        output_layer.dataProvider().addAttributes([QgsField("text_value", QMetaType.Type.QVariantMap)])
         output_layer.updateFields()
 
         res = self.common._test_copy_all('source_table', output_layer, layer_path)
