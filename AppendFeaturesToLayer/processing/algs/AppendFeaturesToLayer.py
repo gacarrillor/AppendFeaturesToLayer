@@ -52,11 +52,14 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
     NO_ACTION_TEXT = "Just APPEND all features, no matter of duplicates"
     SKIP_FEATURE_TEXT = 'If duplicate is found, SKIP feature'
     UPDATE_EXISTING_FEATURE_TEXT = 'If duplicate is found, UPDATE existing feature'
+    UPDATE_EXISTING_FEATURE_SKIP_NULL_TEXT = 'If duplicate is found, UPDATE existing feature BUT skip NULL values in source'
     UPDATE_EXISTING_GEOMETRY_TEXT = "If duplicate is found, only UPDATE existing feature's geometry"
     NO_ACTION = 0
     SKIP_FEATURE = 1
     UPDATE_EXISTING_FEATURE = 2
-    UPDATE_EXISTING_GEOMETRY = 3
+    UPDATE_EXISTING_FEATURE_SKIP_NULL = 3
+    UPDATE_EXISTING_GEOMETRY = 4
+    
 
     def createInstance(self):
         return type(self)()
@@ -74,10 +77,20 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         super().__init__()
 
     def shortHelpString(self):
-        return QCoreApplication.translate("AppendFeaturesToLayer", "This algorithm copies features from a source layer into a target layer.\n\n"
-                                          "Field mapping is handled automatically. Fields that are in both source and target layers are copied. Fields that are only found in source are not copied to target layer.\n\n"
-                                          "Geometry conversion is done automatically, if required by the target layer. For instance, single-part geometries are converted to multi-part if target layer handles multi-geometries; polygons are converted to lines if target layer stores lines; among others.\n\n"
-                                          "This algorithm allows you to choose a field in source and target layers to compare and detect duplicates. It has 4 modes of operation: 1) APPEND feature, regardless of duplicates; 2) SKIP feature if duplicate is found; 3) UPDATE the feature in target layer with attributes (including geometry) from the feature in the source layer; or 4) Only UPDATE the feature's geometry in target layer (leaving attributes intact) if duplicate is found.")
+        return QCoreApplication.translate("AppendFeaturesToLayer", 
+            "This algorithm copies features from a source layer into a target layer.\n\n"
+            "Field mapping is handled automatically. Fields that are in both source and target layers are copied. "
+            "Fields that are only found in source are not copied to target layer.\n\n"
+            "Geometry conversion is done automatically, if required by the target layer. For instance, single-part geometries "
+            "are converted to multi-part if target layer handles multi-geometries; polygons are converted to lines if target layer "
+            "stores lines; among others.\n\n"
+            "This algorithm allows you to choose a field in source and target layers to compare and detect duplicates. It has 5 modes of operation:\n"
+            "1) APPEND feature, regardless of duplicates;\n"
+            "2) SKIP feature if duplicate is found;\n"
+            "3) UPDATE the feature in target layer with attributes (including geometry) from the feature in the source layer;\n"
+            "4) UPDATE the feature in target layer, but skip fields from source that are NULL or empty;\n"
+            "5) Only UPDATE the feature's geometry in target layer (leaving attributes intact) if duplicate is found."
+        )
 
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterFeatureSource(self.INPUT,
@@ -101,10 +114,11 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                                                                                 'Action for duplicate features'),
                                                      [self.NO_ACTION_TEXT, self.SKIP_FEATURE_TEXT,
                                                       self.UPDATE_EXISTING_FEATURE_TEXT,
+                                                      self.UPDATE_EXISTING_FEATURE_SKIP_NULL_TEXT,  # <-- HIER ergänzt
                                                       self.UPDATE_EXISTING_GEOMETRY_TEXT],
                                                      False,
                                                      self.NO_ACTION_TEXT,
-                                                     optional=False))
+                                                     optional=False))                                         
         self.addOutput(QgsProcessingOutputVectorLayer(self.OUTPUT,
                                                       QCoreApplication.translate("AppendFeaturesToLayer",
                                                                                  "Target layer to paste new features")))
@@ -133,6 +147,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         target = self.parameterAsVectorLayer(parameters, self.OUTPUT, context)
         target_fields_parameter = self.parameterAsFields(parameters, self.OUTPUT_FIELD, context)
         action_on_duplicate = self.parameterAsEnum(parameters, self.ACTION_ON_DUPLICATE, context)
+        skip_null_values = action_on_duplicate == self.UPDATE_EXISTING_FEATURE_SKIP_NULL
 
         results = {self.OUTPUT: None,
                    self.APPENDED_COUNT: None,
@@ -180,7 +195,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             feedback.reportError("\nWARNING: The target layer does not support appending features to it! Choose another target layer.")
             return results
 
-        if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
+        if action_on_duplicate in (self.UPDATE_EXISTING_FEATURE, self.UPDATE_EXISTING_FEATURE_SKIP_NULL):
             if target.isSpatial() and not (
                     caps & QgsVectorDataProvider.ChangeAttributeValues and caps & QgsVectorDataProvider.ChangeGeometries):
                 feedback.reportError(
@@ -220,7 +235,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         mapping = dict()
         for target_idx in target.fields().allAttributesList():
             # We won't update PKs on UPDATE mode, that would be dangerous (at least most of the times)!
-            if action_on_duplicate == self.UPDATE_EXISTING_FEATURE and target_idx in target.primaryKeyAttributes():
+            if action_on_duplicate in (self.UPDATE_EXISTING_FEATURE, self.UPDATE_EXISTING_FEATURE_SKIP_NULL) and target_idx in target.primaryKeyAttributes():
                 continue
 
             # Check that we don't have an automatic PK.
@@ -303,11 +318,18 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                     # Avoid intersection if enabled in digitize settings
                     geom.avoidIntersections(QgsProject.instance().avoidIntersectionsLayers())
 
-            if target_feature_exists and action_on_duplicate in (self.UPDATE_EXISTING_FEATURE, self.UPDATE_EXISTING_GEOMETRY):
+            if target_feature_exists and action_on_duplicate in (self.UPDATE_EXISTING_FEATURE, self.UPDATE_EXISTING_FEATURE_SKIP_NULL, self.UPDATE_EXISTING_GEOMETRY):
                 for t_f in target.getFeatures(target_value_dict[duplicate_target_value]):
                     duplicate_features_set.add(t_f.id())
-                    if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
-                        updated_features[t_f.id()] = attrs
+                    if action_on_duplicate in (self.UPDATE_EXISTING_FEATURE, self.UPDATE_EXISTING_FEATURE_SKIP_NULL):
+                        if skip_null_values:
+                            cleaned_attrs = {
+                                k: v for k, v in attrs.items()
+                                if v not in [None, 'NULL'] and (not isinstance(v, str) or v.strip() != '') and QVariant(v).isValid() and not QVariant(v).isNull()
+                            }
+                            updated_features[t_f.id()] = cleaned_attrs
+                        else:
+                            updated_features[t_f.id()] = attrs
 
                     if QgsWkbTypes.geometryType(source.wkbType()) != QgsWkbTypes.NullGeometry and target.isSpatial():
                         # Only overwrite geometry if both source and target layers are spatial
@@ -326,6 +348,8 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
                 if updated_features:
                     for k, v in updated_features.items():
+                        if not v:  # v is an empty dict → nothing to update
+                            continue
                         if target.changeAttributeValues(k, v):
                             updated_features_count += 1
                         else:
@@ -360,7 +384,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
             ))
             results[self.SKIPPED_COUNT] = skipped_features_count
 
-        if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
+        if action_on_duplicate in (self.UPDATE_EXISTING_FEATURE, self.UPDATE_EXISTING_FEATURE_SKIP_NULL):
             feedback.pushInfo("\nUPDATED FEATURES: {} out of {} duplicate features were updated while copying features to '{}'!".format(
                 updated_features_count,
                 len(duplicate_features_set),
