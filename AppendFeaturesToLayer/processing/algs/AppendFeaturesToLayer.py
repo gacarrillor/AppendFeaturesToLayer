@@ -16,7 +16,7 @@
  ***************************************************************************/
 """
 from qgis.PyQt.QtCore import (QVariant,
-                              QCoreApplication)
+                              QCoreApplication, QMetaType)
 
 from qgis.core import (edit,
                        QgsEditError,
@@ -219,16 +219,20 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
         # Define a mapping between source and target layer
         mapping = dict()
         for target_idx in target.fields().allAttributesList():
-            # We won't update PKs on UPDATE mode, that would be dangerous (at least most of the times)!
-            if action_on_duplicate == self.UPDATE_EXISTING_FEATURE and target_idx in target.primaryKeyAttributes():
-                continue
-
-            # Check that we don't have an automatic PK.
-            # Note that for non-automatic PKs, PG is giving a nextval(NULL) as default clause (which should be '').
-            if target.dataProvider().defaultValueClause(target_idx) not in ['', 'nextval(NULL)'] and target_idx in target.primaryKeyAttributes():
-                continue  # We won't be able to update automatic PKs, so skip them
 
             target_field = target.fields().field(target_idx)
+
+            if target_idx in target.primaryKeyAttributes():
+                # when the pk is a UUID (or string), we can allways allow updating it
+                if target_field.type() not in [QMetaType.QString, QMetaType.QUuid]:
+                    # We won't update PKs on UPDATE mode, that would be dangerous (at least most of the times)!
+                    if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
+                        continue
+
+                    # Check that we don't have an automatic PK.
+                    # Note that for non-automatic PKs, PG is giving a nextval(NULL) as default clause (which should be '').
+                    if target.dataProvider().defaultValueClause(target_idx) not in ['', 'nextval(NULL)']:
+                        continue  # We won't be able to update automatic PKs, so skip them
 
             if target.dataProvider().storageType() == 'GPKG' and target_field.name() == 'fid':
                 continue  # We won't be able to update a GPKG FID, so skip it.
