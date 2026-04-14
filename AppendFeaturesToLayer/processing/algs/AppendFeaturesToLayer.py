@@ -224,7 +224,7 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
 
             if target_idx in target.primaryKeyAttributes():
                 # when the pk is a UUID (or string), we can allways allow updating it
-                if target.dataProvider().name() != 'postgres' or target_field.type() not in [QMetaType.Type.QString, QMetaType.Type.QUuid]:
+                if target_field.type() not in [QMetaType.QString, QMetaType.QUuid]:
                     # We won't update PKs on UPDATE mode, that would be dangerous (at least most of the times)!
                     if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
                         continue
