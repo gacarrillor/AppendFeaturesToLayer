@@ -6,10 +6,8 @@ from qgis.core import (QgsApplication,
                        QgsFeatureRequest)
 from qgis.testing import unittest, start_app
 from qgis.testing.mocked import get_iface
-from urllib3 import request
 
 import processing
-import uuid
 
 from tests.utils import (CommonTests,
                          APPENDED_COUNT,
