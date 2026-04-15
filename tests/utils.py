@@ -36,6 +36,10 @@ def get_test_path(path):
 
 
 def get_test_file_copy_path(path):
+    """
+    Returns a copy of the file pointed to by the given path.
+    So that writing on the copy is safe for each test.
+    """
     src_path = get_test_path(path)
     dst_path = os.path.split(src_path)
 
