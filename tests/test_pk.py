@@ -106,7 +106,7 @@ class TestTablePK(unittest.TestCase):
                               'ACTION_ON_DUPLICATE': 2})  # UPDATE
 
         self.assertEqual(res['TARGET_LAYER'].featureCount(), 4)
-        self.assertEqual(res[APPENDED_COUNT], 1)  # The new source feature (fid=10)
+        self.assertEqual(res[APPENDED_COUNT], 1)  # The new source feature which had T_Id=110
         self.assertEqual(res[UPDATED_FEATURE_COUNT], 3)  # 3 matching features counted as UPDATED
         self.assertIsNone(res[SKIPPED_COUNT])
 
@@ -179,6 +179,37 @@ class TestTablePK(unittest.TestCase):
 
         # The only updated value
         self.assertEqual(pg_layer.getFeature(1)["descripcion"], 'Los datos deben corresponder a su modelo')
+
+        # Finally, let's create a new feature in source and run on UPDATE mode.
+        # We check here that we don't set the target PK (T_Id) field, even for new (i.e.,
+        # non-duplicate) features, but let the provider calculate the new PK instead.
+        f = QgsFeature(input_layer.fields())
+        f.setAttribute("T_Id", 110)
+        f.setAttribute("codigo", "R0010")
+        f.setAttribute("descripcion", "ZYX")
+        self.assertTrue(input_layer.dataProvider().addFeatures([f]))
+
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'codigo',
+                              'TARGET_LAYER': pg_layer,
+                              'TARGET_FIELD': 'codigo',
+                              'ACTION_ON_DUPLICATE': 2})  # UPDATE
+
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 4)
+        self.assertEqual(res[APPENDED_COUNT], 1)  # The new source feature which had T_Id=110
+        self.assertEqual(res[UPDATED_FEATURE_COUNT], 3)  # 3 matching features counted as UPDATED
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        # print([f.name() for f in pg_layer.fields()])
+        # print([f.attributes() for f in pg_layer.getFeatures()])
+
+        # It's the provider that creates the PK (T_Id),
+        # so we don't see the 110 from the appended feature!
+        self.assertEqual([f["T_Id"] for f in pg_layer.getFeatures()], [1, 2, 3, 4])
+
+        # The only appended value
+        self.assertEqual(pg_layer.getFeature(4)["descripcion"], 'ZYX')
 
     def test_append_update_pks_pg_no_serial_notnull(self):
         print('\nINFO: Validating avoiding to set/update PKs (no serial, NOT NULL) in PG...')
