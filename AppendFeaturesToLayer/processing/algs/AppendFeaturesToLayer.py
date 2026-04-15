@@ -226,14 +226,12 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                 # When the PK is a UUID and target layer is a PG layer, we add the PK to the mapping,
                 # so that we can keep the incoming PK for non-duplicate features.
                 if target.dataProvider().name() != 'postgres' or target_field.typeName() != "uuid":
-                    # We won't update PKs on UPDATE mode, that would be dangerous (at least most of the time)!
-                    if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:
-                        continue
-
                     # Check that we don't have an automatic PK.
                     # Note that for non-automatic PKs, PG is giving a nextval(NULL) as default clause (which should be '').
                     if target.dataProvider().defaultValueClause(target_idx) not in ['', 'nextval(NULL)']:
                         continue  # We won't be able to update automatic PKs, so skip them
+
+                    # Note: Non-automatic PKs will be treated later, when passing the mapping to update/append.
 
             if target.dataProvider().storageType() == 'GPKG' and target_field.name() == 'fid':
                 continue  # We won't be able to update a GPKG FID, so skip it.
@@ -309,6 +307,11 @@ class AppendFeaturesToLayer(QgsProcessingAlgorithm):
                     geom.avoidIntersections(QgsProject.instance().avoidIntersectionsLayers())
 
             if target_feature_exists and action_on_duplicate in (self.UPDATE_EXISTING_FEATURE, self.UPDATE_EXISTING_GEOMETRY):
+                # If target PK is in attrs, we should remove it from attrs,
+                # since we shouldn't try to update the PK, which could be dangerous.
+                for target_pk_idx in target.primaryKeyAttributes():
+                    attrs.pop(target_pk_idx, None)  # Deletes without KeyErrors
+
                 for t_f in target.getFeatures(target_value_dict[duplicate_target_value]):
                     duplicate_features_set.add(t_f.id())
                     if action_on_duplicate == self.UPDATE_EXISTING_FEATURE:

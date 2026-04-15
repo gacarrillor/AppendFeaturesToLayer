@@ -252,6 +252,9 @@ class TestTablePK(unittest.TestCase):
         # print([f.attributes() for f in pg_layer.getFeatures()])
         self.assertEqual([f["T_Id"] for f in pg_layer.getFeatures()], [1, 100, 101])  # Non-automatic PKs
 
+        # Check that our ABC description is still there (will be updated in the next run)
+        self.assertEqual(pg_layer.getFeature(1)["descripcion"], 'ABC')
+
         res = processing.run("etl_load:appendfeaturestolayer",
                              {'SOURCE_LAYER': input_layer,
                               'SOURCE_FIELD': 'codigo',
@@ -266,10 +269,44 @@ class TestTablePK(unittest.TestCase):
 
         # print([f.name() for f in pg_layer.fields()])
         # print([f.attributes() for f in pg_layer.getFeatures()])
-        self.assertEqual([f["T_Id"] for f in pg_layer.getFeatures()], [1, 100, 101])  # We do set non-automatic PKs
 
-        # # The only updated value
+        # PKs are not changed, i.e., T_Id 1 remains being 1, in spite of having
+        # a matching duplicate feature (codigo=R0001) from source with T_id=100
+        self.assertEqual([f["T_Id"] for f in pg_layer.getFeatures()], [1, 100, 101])
+
+        # The only updated value
         self.assertEqual(pg_layer.getFeature(1)["descripcion"], 'Los datos deben corresponder a su modelo')
+
+        # Finally, let's create a new feature in source and run on UPDATE mode.
+        # We check here that we don't update the target PK (T_Id) field for duplicate features,
+        # BUT we do set the target PK from new (i.e., non-duplicate) features.
+        f = QgsFeature(input_layer.fields())
+        f.setAttribute("T_Id", 110)
+        f.setAttribute("codigo", "R0010")
+        f.setAttribute("descripcion", "ZYX")
+        self.assertTrue(input_layer.dataProvider().addFeatures([f]))
+
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'codigo',
+                              'TARGET_LAYER': pg_layer,
+                              'TARGET_FIELD': 'codigo',
+                              'ACTION_ON_DUPLICATE': 2})  # UPDATE
+
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 4)
+        self.assertEqual(res[APPENDED_COUNT], 1)  # The new source feature which had T_Id=110
+        self.assertEqual(res[UPDATED_FEATURE_COUNT], 3)  # 3 matching features counted as UPDATED
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        # print([f.name() for f in pg_layer.fields()])
+        # print([f.attributes() for f in pg_layer.getFeatures()])
+
+        # Since this time the target PK is not automatic, for non-duplicate features
+        # we take it from the source, so we have the 110 from the appended feature!
+        self.assertEqual([f["T_Id"] for f in pg_layer.getFeatures()], [1, 100, 101, 110])
+
+        # The only appended value
+        self.assertEqual(pg_layer.getFeature(110)["descripcion"], 'ZYX')
 
     def test_append_update_pks_pg_uuid_notnull(self):
         print('\nINFO: Validating to set/update PKs (UUID, NOT NULL) in PG...')
