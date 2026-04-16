@@ -140,6 +140,8 @@ def prepare_pg_db_1():
             CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
                     
             CREATE TABLE IF NOT EXISTS tipo_regla_uuid("T_Id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(), codigo text, descripcion text);
+
+            CREATE TABLE IF NOT EXISTS tipo_regla_uuid_non_auto("T_Id" UUID PRIMARY KEY, codigo text, descripcion text);
         """)
         cur.close()
         conn.commit()
@@ -172,6 +174,8 @@ def drop_all_tables(db=PG_BD_1):
         DROP TABLE tipo_regla_no_serial;
         ALTER TABLE tipo_regla_uuid DROP CONSTRAINT IF EXISTS pk_tipo_regla_uuid;
         DROP TABLE tipo_regla_uuid;
+        ALTER TABLE tipo_regla_uuid_non_auto DROP CONSTRAINT IF EXISTS pk_tipo_regla_uuid_non_auto;
+        DROP TABLE tipo_regla_uuid_non_auto;
         """)
         cur.close()
         conn.commit()
