@@ -564,6 +564,158 @@ class TestTablePK(unittest.TestCase):
         # T_Id: uuid_7, codigo: R0007, descripcion: STU
         # T_Id: uuid_8, codigo: R0008, descripcion: VWX
 
+    def test_append_update_pks_pg_uuid_non_auto(self):
+        print('\nINFO: Validating to set/update PKs (UUID, NON-AUTO) in PG...')
+
+        # Create empty input layer
+        input_layer = QgsVectorLayer(
+            "Point?crs=epsg:3116&field=fid:integer&field=T_Id:string&field=codigo:string&field=descripcion:string",
+            "uuid-layer", "memory")
+        self.assertTrue(input_layer.isValid())
+
+        # Get target layer with UUID PK
+        target_layer = get_qgis_pg_layer(PG_BD_1, 'tipo_regla_uuid_non_auto', truncate=True)  # T_Id, codigo, descripcion
+        self.assertTrue(target_layer.isValid())
+        self.assertEqual(target_layer.featureCount(), 0)
+
+        QgsProject.instance().addMapLayers([input_layer, target_layer])
+
+        # Create a features on the target. We need to pass a UUID.
+        f = QgsFeature(target_layer.fields())
+        uuid_1 = '15431753-059f-4c23-ba60-0e0fc0b28fa5'
+        f.setAttribute("T_Id", uuid_1)
+        f.setAttribute("codigo", "R0001")
+        f.setAttribute("descripcion", "ABC")
+        self.assertTrue(target_layer.dataProvider().addFeatures([f]))
+        self.assertEqual(target_layer.featureCount(), 1)
+
+        # Status in the target layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: ABC
+
+        # Create one features on the input with a new UUID.
+        f = QgsFeature(input_layer.fields())
+        uuid_2 = '12616fa9-f8f8-4746-b5e9-302b387cdb8f'
+        f.setAttribute("T_Id", uuid_2)
+        f.setAttribute("codigo", "R0002")
+        f.setAttribute("descripcion", "GHI")
+        self.assertTrue(input_layer.dataProvider().addFeatures([f]))
+
+        # Status in the input layer:
+        # T_Id: uuid_2, codigo: R0002, descripcion: GHI
+        # Status in the target layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: ABC
+
+        # Expected is the adding of two features, one with the given and the other with the generated UUID
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': None,
+                              'TARGET_LAYER': target_layer,
+                              'TARGET_FIELD': None,
+                              'ACTION_ON_DUPLICATE': 0})  # No action
+
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+        self.assertIsNone(res[UPDATED_FEATURE_COUNT])
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        # Status in the input layer:
+        # T_Id: uuid_2, codigo: R0002, descripcion: GHI
+
+        # Status in the target layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: ABC
+        # T_Id: uuid_2, codigo: R0002, descripcion: GHI
+
+        # Let's prepare the input for a meaningful update
+        # New feature to update R0001
+        f = QgsFeature(input_layer.fields())
+        f.setAttribute("T_Id", uuid_1)
+        f.setAttribute("codigo", "R0001")
+        f.setAttribute("descripcion", "DEF")
+        self.assertTrue(input_layer.dataProvider().addFeatures([f]))
+
+        # Remove redundant feature
+        request = QgsFeatureRequest()
+        request.setFilterExpression(f'"codigo" = \'R0002\'')
+        R0002_feature = list(input_layer.getFeatures(request))[0]
+        input_layer.dataProvider().deleteFeatures([R0002_feature.id()])
+        self.assertEqual(input_layer.featureCount(), 1)
+
+        # Status in the input layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: DEF
+
+        # Status in the target layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: ABC
+        # T_Id: uuid_2, codigo: R0002, descripcion: GHI
+
+        # And we perform an update for the duplicate considering the T_Id (UUID)
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'codigo',
+                              'TARGET_LAYER': target_layer,
+                              'TARGET_FIELD': 'codigo',
+                              'ACTION_ON_DUPLICATE': 2})  # UPDATE
+
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 2)
+        self.assertEqual(res[APPENDED_COUNT], 0)  # No new appended (all already exist)
+        self.assertEqual(res[UPDATED_FEATURE_COUNT], 1)
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        uuids_in_target = [f["T_Id"] for f in target_layer.getFeatures()]
+        self.assertEqual(set(uuids_in_target), {uuid_1, uuid_2})
+        desc_in_target = [f["descripcion"] for f in target_layer.getFeatures()]
+        self.assertEqual(set(desc_in_target), {'DEF', 'GHI'})
+
+        # Status in the input layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: DEF
+
+        # Status in the target layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: DEF
+        # T_Id: uuid_2, codigo: R0002, descripcion: GHI
+
+        # Now we add a new one with a new UUID, which should be added without problems,
+        # i.e., taking the PK from the source for the non-duplicate feature (uuid_3)
+        f = QgsFeature(input_layer.fields())
+        uuid_3 = 'bae27e96-bffc-4b27-9cdc-162731043293'
+        f.setAttribute("T_Id", uuid_3)
+        f.setAttribute("codigo", "R0003")
+        f.setAttribute("descripcion", "JKL")
+        self.assertTrue(input_layer.dataProvider().addFeatures([f]))
+
+        # Status in the input layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: DEF
+        # T_Id: uuid_3, codigo: R0003, descripcion: JKL
+
+        # Status in the target layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: DEF
+        # T_Id: uuid_2, codigo: R0002, descripcion: GHI
+
+        # And we perform an update for the duplicate considering the T_Id (UUID)
+        res = processing.run("etl_load:appendfeaturestolayer",
+                             {'SOURCE_LAYER': input_layer,
+                              'SOURCE_FIELD': 'codigo',
+                              'TARGET_LAYER': target_layer,
+                              'TARGET_FIELD': 'codigo',
+                              'ACTION_ON_DUPLICATE': 2})  # UPDATE
+
+        self.assertEqual(res['TARGET_LAYER'].featureCount(), 3)
+        self.assertEqual(res[APPENDED_COUNT], 1)
+        self.assertEqual(res[UPDATED_FEATURE_COUNT], 1)  # The four others are updated, although without changes
+        self.assertIsNone(res[SKIPPED_COUNT])
+
+        uuids_in_target = [f["T_Id"] for f in target_layer.getFeatures()]
+        self.assertEqual(set(uuids_in_target), {uuid_1, uuid_2, uuid_3})
+        desc_in_target = [f["descripcion"] for f in target_layer.getFeatures()]
+        self.assertEqual(set(desc_in_target), {'DEF', 'GHI', 'JKL'})
+
+        # Status in the input layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: DEF
+        # T_Id: uuid_3, codigo: R0003, descripcion: JKL
+
+        # Status in the target layer:
+        # T_Id: uuid_1, codigo: R0001, descripcion: DEF
+        # T_Id: uuid_2, codigo: R0002, descripcion: GHI
+        # T_Id: uuid_3, codigo: R0003, descripcion: JKL
+
     @classmethod
     def tearDownClass(cls):
         print('INFO: Tear down TestTablePK')
