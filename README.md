@@ -68,10 +68,10 @@ This algorithm allows you to choose a field in `source` and `target` layers to c
 
 The algorithm deals with target layer's Primary Keys in this way:
 
-|           PRIMARY KEY           |                                                    APPEND mode                                                     |                UPDATE mode                 |
-|:-------------------------------:|:------------------------------------------------------------------------------------------------------------------:|:------------------------------------------:|
-| Automatic PK<br/>(e.g., serial) |               It lets the provider (e.g., PostgreSQL, GeoPackage, etc.) fill the value automatically               | It doesn't modify the value already stored |
-|        Non-automatic PK         | You need to provide a value for the PK in the source layer, because such value wil be set in the target layer's PK | It doesn't modify the value already stored |
+|           PRIMARY KEY           |                                                    APPEND mode                                                     |                                                                                                                     UPDATE mode                                                                                                                     |
+|:-------------------------------:|:------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| Automatic PK<br/>(e.g., serial) |               It lets the provider (e.g., PostgreSQL, GeoPackage, etc.) fill the value automatically               | **Duplicate features**: It doesn't modify the value already stored<br/>**Non-duplicate features**: Let's the provider fill the value automatically, **except** for UUID PKs on PostgreSQL, where the value is set from the source layer (if given)! |
+|        Non-automatic PK         | You need to provide a value for the PK in the source layer, because such value wil be set in the target layer's PK |                                       **Duplicate features**: It doesn't modify the value already stored<br/>**Non-duplicate features**: The value is set from the source layer (it should always be given)!                                        |
 
 **Note on geometry updates**
 
@@ -168,7 +168,7 @@ Make sure the plugin can be found in your QGIS plugins folder, that is, that you
 First, you need to set 2 environment variables:
 
     export GITHUB_WORKSPACE=/path/to/AppendFeaturesToLayer/
-    export QGIS_TEST_VERSION="3.40.4-noble"  # "final-3_34_15" for previous LTR
+    export QGIS_TEST_VERSION="3.44.7-noble"
 
 After that, you could run unit tests locally with this command:
 
